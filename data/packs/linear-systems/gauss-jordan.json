@@ -101,9 +101,9 @@
                               ],
                     "solution_steps":  [
                                            "起始 \\(\\left[\\begin{array}{ccc|c}0\u00262\u00261\u00267\\\\2\u00261\u00261\u00267\\\\1\u00261\u00263\u002612\\end{array}\\right]\\)，第一欄選第 \\(2\\) 列的 \\(2\\) 作主元；交換 \\(R_{1}\\)、\\(R_{2}\\)。",
-                                           "\\(R_{1} \\leftarrow \\frac{R_{1}}{2}\\)，得 \\(R_{1} = \\left[\\frac{\\frac{1\\,1}{2}\\,1}{2}\\,\\middle|\\,\\frac{7}{2}\\right]\\)。\\(R_{2} = \\left[0\\,2\\,1\\,\\middle|\\,7\\right]\\) 不變；\\(R_{3} \\leftarrow R_{3} - R_{1}\\)，得 \\(\\left[\\frac{\\frac{0\\,1}{2}\\,5}{2}\\,\\middle|\\,\\frac{17}{2}\\right]\\)。",
-                                           "第二欄選第 \\(2\\) 列的 \\(2\\)，\\(R_{2} \\leftarrow \\frac{R_{2}}{2}\\)，得 \\(\\left[\\frac{0\\,1\\,1}{2}\\,\\middle|\\,\\frac{7}{2}\\right]\\)。",
-                                           "\\(R_{1} \\leftarrow R_{1} - \\left(\\frac{1}{2}\\right) \\, R_{2}\\)，得 \\(\\left[\\frac{1\\,0\\,1}{4}\\,\\middle|\\,\\frac{7}{4}\\right]\\)；\\(R_{3} \\leftarrow R_{3} - \\left(\\frac{1}{2}\\right) \\, R_{2}\\)，得 \\(\\left[\\frac{0\\,0\\,9}{4}\\,\\middle|\\,\\frac{27}{4}\\right]\\)。",
+                                           "\\(R_{1} \\leftarrow \\frac{R_{1}}{2}\\)，得 \\(R_{1} = \\left[\\begin{array}{ccc|c}1&\\frac{1}{2}&\\frac{1}{2}&\\frac{7}{2}\\end{array}\\right]\\)。\\(R_{2} = \\left[0\\,2\\,1\\,\\middle|\\,7\\right]\\) 不變；\\(R_{3} \\leftarrow R_{3} - R_{1}\\)，得 \\(\\left[\\begin{array}{ccc|c}0&\\frac{1}{2}&\\frac{5}{2}&\\frac{17}{2}\\end{array}\\right]\\)。",
+                                           "第二欄選第 \\(2\\) 列的 \\(2\\)，\\(R_{2} \\leftarrow \\frac{R_{2}}{2}\\)，得 \\(\\left[\\begin{array}{ccc|c}0&1&\\frac{1}{2}&\\frac{7}{2}\\end{array}\\right]\\)。",
+                                           "\\(R_{1} \\leftarrow R_{1} - \\left(\\frac{1}{2}\\right) \\, R_{2}\\)，得 \\(\\left[\\begin{array}{ccc|c}1&0&\\frac{1}{4}&\\frac{7}{4}\\end{array}\\right]\\)；\\(R_{3} \\leftarrow R_{3} - \\left(\\frac{1}{2}\\right) \\, R_{2}\\)，得 \\(\\left[\\begin{array}{ccc|c}0&0&\\frac{9}{4}&\\frac{27}{4}\\end{array}\\right]\\)。",
                                            "第三欄主元為 \\(\\frac{9}{4}\\)，\\(R_{3} \\leftarrow \\frac{R_{3}}{\\left(\\frac{9}{4}\\right)}\\)，得 \\(\\left[0\\,0\\,1\\,\\middle|\\,3\\right]\\)。",
                                            "\\(R_{1} \\leftarrow R_{1} - \\left(\\frac{1}{4}\\right) \\, R_{3}\\)，得 \\(\\left[1\\,0\\,0\\,\\middle|\\,1\\right]\\)；\\(R_{2} \\leftarrow R_{2} - \\left(\\frac{1}{2}\\right) \\, R_{3}\\)，得 \\(\\left[0\\,1\\,0\\,\\middle|\\,2\\right]\\)。",
                                            "最終 \\(\\mathrm{RREF} = \\left[\\begin{array}{ccc|c}1\u00260\u00260\u00261\\\\0\u00261\u00260\u00262\\\\0\u00260\u00261\u00263\\end{array}\\right]\\)，係數區即 \\(I\\)。讀出 \\(x_{1} = 1\\)、\\(x_{2} = 2\\)、\\(x_{3} = 3\\)。",
@@ -115,7 +115,7 @@
     "matlab_explanation":  [
                                "前段檢查與高斯消去法一致，只接受本例範圍內的非奇異方陣。",
                                "pivot 必須先保存再整列相除，避免逐元素覆寫使主元意外改變。",
-                               "\\(i\\)~\\(=\\,k\\) 的迴圈消去主元上方與下方，不只處理下方列。",
+                               "\\(i\\ne k\\) 的迴圈消去主元上方與下方，不只處理下方列。",
                                "每次先讀取 multiplier 再整列相減，常數欄也參與運算。",
                                "stages 保存每欄處理後的矩陣，可比對手算；M(:,end) 直接讀出解。",
                                "一般 RREF 可以分類奇異系統；本程式明確停止這類輸入，不宣稱本範例是完整通用 RREF 求解器。"

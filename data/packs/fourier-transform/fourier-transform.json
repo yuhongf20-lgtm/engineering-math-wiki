@@ -95,7 +95,7 @@
                                "不用符號工具箱；解析式與 integral 的數值積分互相核對。",
                                "exponential 在零點分成兩半積分，以明確處理 abs(t)。",
                                "gaussian 使用 t.^2 做逐元素平方；omega 是角頻率。",
-                               "rectangle 的 \\(\\omega = =\\,0\\) 分支直接算 A*T，接近零則採 \\(\\frac{\\sin\\left(z\\right)}{z}\\) 的級數。",
+                               "rectangle 的 \\(\\omega=0\\) 分支直接算 A*T，接近零則採 \\(\\frac{\\sin\\left(z\\right)}{z}\\) 的級數。",
                                "\\(\\mathrm{magnitude} = \\left|F\\right|\\) 與 \\(F\\) 分開顯示；MATLAB 內建 sinc 的 \\(\\pi\\) 正規化與本式不同。",
                                "數值積分允許有限誤差，極端高頻或尺度未保證都可靠；本例以指定容許誤差檢查。"
                            ],
