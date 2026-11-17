@@ -1,0 +1,163 @@
+{
+    "id":  "gaussian-elimination",
+    "category":  "linear-systems",
+    "type":  "algorithm",
+    "title_zh":  "高斯消去法",
+    "title_en":  "Gaussian Elimination",
+    "summary":  "以部分選主元與向前消去將方程組化成上三角系統，再由最後一個未知數開始向後代入。",
+    "prerequisites":  [
+                          "線性方程組 \\(\\mathrm{Ax} = b\\)",
+                          "矩陣與增廣矩陣",
+                          "基本列運算與回代"
+                      ],
+    "concept":  "交換兩列、用非零常數乘一列、將一列的倍數加到另一列，都不改變方程組解集合。高斯消去法利用這些操作消去主元下方係數，得到上三角系統；接著由底向上求解。部分選主元可處理原對角元素為零但系統仍可逆的情況。",
+    "formulas":  [
+                     "消去倍數：\\[m_{ik}=\\frac{a_{ik}}{a_{kk}},\\qquad i\u003ek\\]其中 \\(a_{kk}\\) 為目前主元。",
+                     "列消去：\\[R_i\\leftarrow R_i-m_{ik}R_k\\]常數欄也必須同步運算。",
+                     "上三角系統：\\(Ux=c\\)；最後一式 \\[x_n=\\frac{c_n}{u_{nn}}.\\]",
+                     "向後代入：\\[x_i=\\frac{c_i-\\sum_{j=i+1}^{n}u_{ij}x_j}{u_{ii}}.\\]",
+                     "部分選主元：在 \\(i=k,\\ldots,n\\) 中選 \\(\\lvert a_{ik}\\rvert\\) 最大的列 \\(p\\)，交換 \\(R_k\\) 與 \\(R_p\\)。",
+                     "核對：\\[\\mathrm{residual}=\\lVert A_{\\mathrm{original}}x-b_{\\mathrm{original}}\\rVert_\\infty.\\]"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "\\(A , a_{ij}\\)",
+                        "meaning":  "係數矩陣及第 \\(i\\) 列、第 \\(\\mathrm{j}\\) 欄元素。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(b , b_{i}\\)",
+                        "meaning":  "右側常數向量與第 \\(i\\) 個常數。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(x , x_{i} , x_{1} , x_{2} , x_{3}\\)",
+                        "meaning":  "未知解向量及其分量，例題分別以 \\(x_{1}\\)、\\(x_{2}\\)、\\(x_{3}\\) 表示。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(M = \\left[A\\,\\middle|\\,b\\right] , R_{i}\\)",
+                        "meaning":  "增廣矩陣與其中第 \\(i\\) 列；MATLAB 寫作 \\(\\left[A,b\\right]\\)。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "i, j, k, n",
+                        "meaning":  "列／欄編號、目前主元欄及方程組維度。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "pivot, p, pivotTol",
+                        "meaning":  "目前主元、選中的主元列與數值保護門檻。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(\\left\\lVert v\\right\\rVert_{\\infty} , \\mathrm{residual}\\)",
+                        "meaning":  "向量元素絕對值的最大值及原系統殘差。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "rcond(A)",
+                        "meaning":  "倒條件數估計，用於辨識數值近奇異；不是精確秩證明。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(m_{ik} , \\mathrm{multiplier}\\)",
+                        "meaning":  "消去第 \\(i\\) 列第 \\(k\\) 欄的倍數。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(U , u_{ij} , c , c_{i}\\)",
+                        "meaning":  "消去後上三角矩陣、其元素與變換後右側向量。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(\\mathrm{sum}\\left(\\mathrm{j} = i + 1 \\ldots n,\\mathrm{...}\\right)\\)",
+                        "meaning":  "將所有已求得的右側分量乘係數後加總；空和為 \\(0\\)。",
+                        "unit":  "本例無單位"
+                    }
+                ],
+    "conditions":  [
+                       "本教學程式只處理有限實數的非奇異 \\(n\\)×\\(n\\) 方陣與相容常數向量；不提供一般欠定或超定求解器。",
+                       "主元為零時先在下方尋找可用非零元素交換整列；部分選主元每次選目前欄剩餘元素中絕對值最大者。",
+                       "如果沒有安全主元，或 \\(\\mathrm{rcond}\\left(A\\right) \\le 1\\times10^{-12}\\)，程式拒絕唯一解計算。奇異系統可能無解或有無限多解，不能一律稱為無解。",
+                       "浮點小主元與近奇異可能放大誤差；部分選主元有助穩定，但不保證所有問題都高精度。",
+                       "範例以原方程組殘差核對；殘差小不保證病態問題的解向量誤差小。"
+                   ],
+    "steps":  [
+                  "檢查方陣尺寸、常數長度與有限實數，保存原始 \\(A\\)、\\(b\\)。",
+                  "建立增廣矩陣 \\(M\\)；由第一欄開始處理主元。",
+                  "在當前欄剩餘列中找絕對值最大元素，必要時交換整列。若無安全主元則停止唯一解求解。",
+                  "對主元下方各列計算倍數並消去，包含右側常數欄。",
+                  "逐欄重複至上三角形；每階段檢查非有限值。",
+                  "從最後一列向後代入，除法前確認對角主元可用。",
+                  "將所得解代回原系統計算殘差；不使用變形後系統取代原始核對。"
+              ],
+    "example":  {
+                    "problem":  "自編例題：求解首個對角元素為零的三元方程組，示範部分選主元、向前消去與回代。",
+                    "given":  [
+                                  "\\(A = \\begin{bmatrix}0\u00262\u00261\\\\2\u00261\u00261\\\\1\u00261\u00263\\end{bmatrix}\\)，\\(b = \\begin{bmatrix}7\\\\7\\\\12\\end{bmatrix}\\)，各量無單位。",
+                                  "等價方程：\\[\\begin{cases}2x_2+x_3=7,\\\\2x_1+x_2+x_3=7,\\\\x_1+x_2+3x_3=12.\\end{cases}\\]",
+                                  "本例為直接法，不設迭代精度停止；以完成消去及原式殘差核對。數值保護採 \\(\\mathrm{rcond}\\left(A\\right) \u003e 1\\times10^{-12}\\) 與相對主元門檻。"
+                              ],
+                    "solution_steps":  [
+                                           "起始增廣矩陣：\\(\\left[\\begin{array}{ccc|c}0\u00262\u00261\u00267\\\\2\u00261\u00261\u00267\\\\1\u00261\u00263\u002612\\end{array}\\right]\\)。第一欄最大絕對值為 \\(2\\)，在第 \\(2\\) 列，交換 \\(R_{1}\\) 與 \\(R_{2}\\)。",
+                                           "換列後：\\(\\left[\\begin{array}{ccc|c}2\u00261\u00261\u00267\\\\0\u00262\u00261\u00267\\\\1\u00261\u00263\u002612\\end{array}\\right]\\)。第 \\(2\\) 列倍數 \\(m_{21} = 0\\)；第 \\(3\\) 列倍數 \\(m_{31} = \\frac{1}{2}\\)。",
+                                           "\\(R_{3} \\leftarrow R_{3} - \\left(\\frac{1}{2}\\right) \\, R_{1}\\)，得 \\(\\left[\\frac{\\frac{0\\,1}{2}\\,5}{2}\\,\\middle|\\,\\frac{17}{2}\\right]\\)；此時矩陣為 \\(\\left[\\begin{array}{ccc|c}2\u00261\u00261\u00267\\\\0\u00262\u00261\u00267\\\\0\u0026\\frac{1}{2}\u0026\\frac{5}{2}\u0026\\frac{17}{2}\\end{array}\\right]\\)。",
+                                           "第二欄剩餘元素為 \\(2\\) 與 \\(\\frac{1}{2}\\)，保留第 \\(2\\) 列為主元列。\\(m_{32} = \\frac{\\left(\\frac{1}{2}\\right)}{2} = \\frac{1}{4}\\)。",
+                                           "\\(R_{3} \\leftarrow R_{3} - \\left(\\frac{1}{4}\\right) \\, R_{2}\\)，第三列成為 \\(\\left[\\frac{0\\,0\\,9}{4}\\,\\middle|\\,\\frac{27}{4}\\right]\\)。上三角增廣矩陣為 \\(\\left[\\begin{array}{ccc|c}2\u00261\u00261\u00267\\\\0\u00262\u00261\u00267\\\\0\u00260\u0026\\frac{9}{4}\u0026\\frac{27}{4}\\end{array}\\right]\\)。",
+                                           "向後代入：\\(x_{3} = \\frac{\\left(\\frac{27}{4}\\right)}{\\left(\\frac{9}{4}\\right)} = 3\\)；\\(x_{2} = \\frac{\\left(7 - 1 \\, 3\\right)}{2} = 2\\)；\\(x_{1} = \\frac{\\left(7 - 1 \\, 2 - 1 \\, 3\\right)}{2} = 1\\)。",
+                                           "代回原式：\\(2 \\, 2 + 3 = 7\\)；\\(2 \\, 1 + 2 + 3 = 7\\)；\\(1 + 2 + 3 \\, 3 = 12\\)。故 \\(A \\, x - b = \\begin{bmatrix}0\\\\0\\\\0\\end{bmatrix}\\)。"
+                                       ],
+                    "answer":  "唯一解 \\(x = \\begin{bmatrix}1\\\\2\\\\3\\end{bmatrix}\\)，原方程組殘差為 \\(0\\)（精確算術）；浮點計算可能有極小捨入殘差。"
+                },
+    "matlab_code":  "% 自編例題：首個 pivot 為零，使用部分選主元\nA = [0 2 1; 2 1 1; 1 1 3]; % 係數矩陣\nb = [7;7;12]; % 右側常數\n% 檢查有限實數矩陣及向量\nvalidateattributes(A, {\u0027double\u0027}, {\u00272d\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027nonempty\u0027});\nvalidateattributes(b, {\u0027double\u0027}, {\u0027vector\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027nonempty\u0027});\nn = size(A,1); % 方程式數量\nif size(A,2) ~= n || numel(b) ~= n\n    error(\u0027Linear:Dimensions\u0027, \u0027本程式只接受 n×n 方陣及 n 個常數。\u0027);\nend\nb = b(:); % 統一轉為直向向量\nA0 = A; b0 = b; % 保留原題供殘差檢查\nmatrixScale = norm(A,inf); % 矩陣尺度\nif ~isfinite(matrixScale) || matrixScale == 0\n    error(\u0027Linear:Scale\u0027, \u0027矩陣尺度無效或為零。\u0027);\nend\nif rcond(A) \u003c= 1e-12\n    error(\u0027Linear:Singular\u0027, \u0027矩陣奇異或數值近奇異；本唯一解範例停止，不宣稱無解。\u0027);\nend\npivotTol = 1e-12*matrixScale; % 相對矩陣尺度的保護門檻，不是精確秩判定\n\nM = [A,b]; % 增廣矩陣，列運算須包含常數欄\nstages = {M}; % 保存每個消去階段\nfor k = 1:n\n    [pivotMagnitude,offset] = max(abs(M(k:n,k))); % 搜尋目前欄的最大可用主元\n    p = k+offset-1; % 換回原矩陣列編號\n    if pivotMagnitude \u003c= pivotTol\n        error(\u0027Gaussian:Pivot\u0027, \u0027無安全主元，本唯一解範例停止。\u0027);\n    end\n    M([k,p],:) = M([p,k],:); % 必要時交換整列，包含 b\n    for i = k+1:n\n        multiplier = M(i,k)/M(k,k); % 消去倍數\n        M(i,k:end) = M(i,k:end)-multiplier*M(k,k:end); % 向前消去\n        M(i,k) = 0; % 清除已消去位置的捨入殘值\n    end\n    if any(~isfinite(M(:)))\n        error(\u0027Gaussian:NonFinite\u0027, \u0027消去產生非有限值。\u0027);\n    end\n    stages{end+1} = M; % 保存上三角化過程\n    disp(M); % 顯示本階段增廣矩陣\nend\nx = zeros(n,1); % 配置解向量\nfor i = n:-1:1\n    if abs(M(i,i)) \u003c= pivotTol\n        error(\u0027Gaussian:Pivot\u0027, \u0027向後代入遇到零或過小主元。\u0027);\n    end\n    x(i) = (M(i,end)-M(i,i+1:n)*x(i+1:n))/M(i,i); % 向後代入\nend\nresidual = norm(A0*x-b0,inf); % 原方程組無窮範數殘差\nif any(~isfinite(x)) || ~isfinite(residual)\n    error(\u0027Gaussian:NonFinite\u0027, \u0027解或殘差非有限值。\u0027);\nend\ndisp(x); fprintf(\u0027殘差 = %.12e\\n\u0027,residual); % 本例應得 [1;2;3]\n",
+    "matlab_explanation":  [
+                               "\\(A\\)、\\(b\\) 與手算完全相同，首個對角元素為零但可藉換列求解。",
+                               "validateattributes、尺寸與 rcond 檢查將非有限、非方陣與數值奇異問題明確拒絕；門檻為本教學實作選擇。",
+                               "M([k,p],:) 同步交換係數及常數；max(abs(...)) 實作部分選主元。",
+                               "multiplier 與整列相減對應 \\(m_{ik}\\) 與向前消去；stages 留下每一階段供測試核對。",
+                               "反向 for 迴圈進行向後代入；空範圍乘積為 \\(0\\)，所以最後一列也可使用同一公式。",
+                               "原始 \\(A_{0}\\)、\\(b_{0}\\) 用於殘差檢查。程式不對奇異系統猜測解，也不求逆矩陣。"
+                           ],
+    "advantages":  [
+                       "直接求解非奇異方陣系統，不需要初始近似向量。",
+                       "配合部分選主元，能避開原始零主元並減少部分捨入風險。"
+                   ],
+    "limitations":  [
+                        "稠密大系統的消去運算量通常約隨 \\({n}^{3}\\) 增加。",
+                        "病態矩陣可能有大的解誤差，即使殘差很小。",
+                        "本程式遇奇異或近奇異矩陣會停止，不進行自由變數分類。"
+                    ],
+    "common_mistakes":  [
+                            "\\(\\mathrm{pivot} = 0\\) 就斷言系統無解，忽略下方可能可換列。",
+                            "換列或消去時只改係數、不改右側常數。",
+                            "使用已被覆寫的主元或倍數；向後代入順序由上往下。",
+                            "將小浮點主元當精確零，或反過來對極小主元直接除法。",
+                            "只檢查變形後系統，忘記代回原始 \\(A\\)、\\(b\\)。"
+                        ],
+    "calculator_id":  "gaussian-elimination",
+    "sources":  [
+                    {
+                        "title":  "DLMF §3.2(i) Gaussian Elimination",
+                        "author":  "NIST",
+                        "url":  "https://dlmf.nist.gov/3.2.i",
+                        "sections":  "向前消去、向後代入與部分選主元",
+                        "note":  "已初步查閱方法說明；尚未完成整份資料包的全面內容與來源查核。"
+                    },
+                    {
+                        "title":  "Gaussian Elimination with Partial Pivoting",
+                        "author":  "MIT, Terry D. Johnson",
+                        "url":  "https://web.mit.edu/10.001/Web/Course_Notes/GaussElimPivoting.html",
+                        "sections":  "選主元及換列步驟",
+                        "note":  "只參考方法步驟；本包未沿用該頁例題或計算結果。"
+                    },
+                    {
+                        "title":  "自編例題與 MATLAB 教學實作",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "本資料包 example、matlab_code",
+                        "note":  "例題及程式為專案自編，不是外部課本題目；容許誤差與保護門檻為本例設定。"
+                    }
+                ],
+    "status":  "draft"
+}

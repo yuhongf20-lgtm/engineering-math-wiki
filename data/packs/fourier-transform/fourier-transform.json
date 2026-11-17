@@ -1,0 +1,150 @@
+{
+    "id":  "fourier-transform",
+    "category":  "fourier-transform",
+    "type":  "concept",
+    "title_zh":  "傅立葉轉換",
+    "title_en":  "Fourier Transform",
+    "summary":  "以雙邊角頻率積分描述信號的頻率分量；本包採正轉換無係數、反轉換係數 \\(\\frac{1}{\\left(2\\,\\pi\\right)}\\) 的慣例。",
+    "prerequisites":  [
+                          "廣義積分、偶函數與奇函數",
+                          "複數指數與 Euler 公式",
+                          "角頻率 \\(\\frac{\\mathrm{rad}}{s}\\)、一般頻率 Hz 與高斯積分"
+                      ],
+    "concept":  "傅立葉轉換把整條時間軸上的信號與複指數核相乘積分，以觀察不同角頻率的振盪貢獻。一般結果是複數，幅度與相位一起描述頻域資訊。本包三個選項都是實偶函數，所以轉換是實偶函數，虛部為零；這不是所有信號都具備的性質。頻域幅度不是可直接當成功率的量。",
+    "formulas":  [
+                     "正轉換：\\[F(\\omega)=\\int_{-\\infty}^{\\infty}f(t)e^{-\\mathrm{j}\\omega t}\\,\\mathrm{d}t.\\]",
+                     "相容反轉換慣例：\\[f(t)=\\frac1{2\\pi}\\int_{-\\infty}^{\\infty}F(\\omega)e^{\\mathrm{j}\\omega t}\\,\\mathrm{d}\\omega\\]實際成立方式須符合反演定理條件。本計算器不執行反轉換。",
+                     "角頻率與一般頻率：\\(\\omega=2\\pi\\nu\\)，\\(\\nu\\) 為 Hz；若寫作一般頻率 \\(f\\)，則 \\(\\omega=2\\pi f\\)。本包 \\(f(t)\\) 則代表時域函數。",
+                     "\\(e^{-a|t|}\\)，\\(a\u003e0\\)：\\[F(\\omega)=\\frac{2a}{a^2+\\omega^2}.\\]",
+                     "\\(e^{-at^2}\\)，\\(a\u003e0\\)：\\[F(\\omega)=\\sqrt{\\frac\\pi a}\\exp\\left(-\\frac{\\omega^2}{4a}\\right).\\]",
+                     "矩形脈衝：\\[f(t)=\\begin{cases}A,\u0026|t|\\le T/2,\\\\0,\u0026\\text{其他時間},\\end{cases}\\qquad T\u003e0\\]其轉換為 \\[F(\\omega)=\\begin{cases}\\dfrac{2A\\sin(\\omega T/2)}{\\omega},\u0026\\omega\\ne0,\\\\AT,\u0026\\omega=0.\\end{cases}\\]",
+                     "令 \\(z=\\omega T/2\\)，矩形公式可寫成 \\(AT\\frac{\\sin z}{z}\\)，且 \\[\\lim_{z\\to0}\\frac{\\sin z}{z}=1.\\]注意 MATLAB \\(\\operatorname{sinc}(u)=\\frac{\\sin(\\pi u)}{\\pi u}\\)，其引數不同。",
+                     "實偶函數的正轉換為 \\[2\\int_0^\\infty f(t)\\cos(\\omega t)\\,\\mathrm{d}t\\]奇對稱的虛部積分為零。"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "t, T",
+                        "meaning":  "時間與矩形脈衝全寬；\\(T\\) 必須大於零。",
+                        "unit":  "\\(s\\)（秒）"
+                    },
+                    {
+                        "symbol":  "\\(\\omega , \\nu\\), 一般頻率 \\(f\\)",
+                        "meaning":  "角頻率、普通頻率；\\(\\omega = 2\\,\\pi\\,\\nu = 2\\,\\pi\\,f\\)。",
+                        "unit":  "\\(\\omega\\)：\\(\\frac{\\mathrm{rad}}{s}\\)；\\(\\nu\\)、\\(f\\)：Hz"
+                    },
+                    {
+                        "symbol":  "\\(f\\left(t\\right) , F\\left(\\omega\\right)\\)",
+                        "meaning":  "時域信號與頻域轉換；\\(F\\) 單位為信號單位乘秒。",
+                        "unit":  "依函數與單位設定"
+                    },
+                    {
+                        "symbol":  "\\(\\mathrm{j} , \\pi\\)",
+                        "meaning":  "虛數單位（\\({\\mathrm{j}}^{2} = -1\\)）與圓周率。",
+                        "unit":  "無"
+                    },
+                    {
+                        "symbol":  "\\(a\\)",
+                        "meaning":  "正實參數；e^(-a|t|) 與 \\({e}^{\\left(-a\\,{t}^{2}\\right)}\\) 中量綱不同。",
+                        "unit":  "前者 \\(\\frac{1}{s}\\)，後者 \\(\\frac{1}{{s}^{2}}\\)"
+                    },
+                    {
+                        "symbol":  "A, z",
+                        "meaning":  "矩形振幅與 \\(z = \\frac{\\omega\\,T}{2}\\) 的無因次角度。",
+                        "unit":  "依函數與單位設定"
+                    },
+                    {
+                        "symbol":  "\\(\\left|F\\left(\\omega\\right)\\right|\\)",
+                        "meaning":  "頻域幅度，即複數模；本包實數結果時為絕對值。",
+                        "unit":  "依函數與單位設定"
+                    }
+                ],
+    "conditions":  [
+                       "本包三種函數皆在指定參數條件下絕對可積，所以對每個實 \\(\\omega\\) 的雙邊積分存在。絕對可積是常用充分條件，不是所有廣義傅立葉轉換存在的必要條件。",
+                       "兩個衰減函數要求 \\(a \u003e 0\\)；矩形要求有限實振幅 \\(A\\)、\\(T \u003e 0\\)；\\(\\omega\\) 為有限實數角頻率。",
+                       "常數與永續正弦一般不在本包的絕對可積範圍；可能需分佈觀點，不能硬套本選單。",
+                       "矩形端點的單點取值不改變積分；反演在跳躍點可能回到左右極限平均，不能要求任意端點定義都逐點還原。",
+                       "矩形在 \\(\\omega = 0\\) 必須用極限 AT；接近零以穩定數值方式計算。",
+                       "不同書籍的 \\(2\\,\\pi\\) 與正負號慣例可能不同，引用公式前必須換成同一慣例。"
+                   ],
+    "steps":  [
+                  "確認使用雙邊積分與角頻率慣例，寫明相容反轉換係數。",
+                  "選固定函數，檢查 \\(a\\)、\\(A\\)、\\(T\\) 與 \\(\\omega\\) 的條件。",
+                  "利用奇偶對稱、分段積分或已知高斯轉換對寫出解析式。",
+                  "代入參數；矩形先分辨 \\(\\omega = 0\\) 與非零，避免 \\(\\frac{0}{0}\\)。",
+                  "計算 \\(F\\left(\\omega\\right)\\) 與幅度 \\(\\left|F\\left(\\omega\\right)\\right|\\)，說明本選單虛部為零。",
+                  "檢查有限值與尺度；需要時以 MATLAB 數值積分核對，並保留捨入限制。"
+              ],
+    "example":  {
+                    "problem":  "自編例題：求振幅 \\(A = 2\\)、全寬 \\(T = 3\\) 的矩形脈衝在 \\(\\omega = 0\\) 及 \\(\\omega = \\frac{\\pi}{3}\\) 的轉換，並核對兩個衰減信號。",
+                    "given":  [
+                                  "矩形 \\(f\\left(t\\right) = 2\\)，\\(\\left|t\\right| \\le 1.5\\)；其他為零。",
+                                  "採 \\(F\\left(\\omega\\right) = \\int_{-\\infty}^{\\infty}\\,f\\left(t\\right)\\,{e}^{\\left(-\\mathrm{j}\\,\\omega\\,t\\right)}\\,\\,\\mathrm{d}t\\)；\\(\\omega\\) 的單位是 \\(\\frac{\\mathrm{rad}}{s}\\)。"
+                              ],
+                    "solution_steps":  [
+                                           "將支撐限制代入：\\(F\\left(\\omega\\right) = 2 \\, \\int_{-1.5}^{1.5}\\,{e}^{\\left(-\\mathrm{j}\\,\\omega\\,t\\right)}\\,\\,\\mathrm{d}t\\)。",
+                                           "\\(\\omega \\ne 0\\) 時，反導函數為 \\(\\frac{{e}^{\\left(-\\mathrm{j}\\,\\omega\\,t\\right)}}{\\left(-\\mathrm{j}\\,\\omega\\right)}\\)，相減後得 \\(F\\left(\\omega\\right) = \\frac{4 \\, \\sin\\left(1.5\\,\\omega\\right)}{\\omega}\\)。",
+                                           "\\(\\omega = 0\\) 不能直接代入 \\(\\frac{0}{0}\\)；從原積分得 \\(F\\left(0\\right) = 2 \\, \\left(1.5 - \\left(-1.5\\right)\\right) = 6\\)，亦等於 AT。",
+                                           "\\(\\omega = \\frac{\\pi}{3}\\) 時，\\(\\frac{\\omega\\,T}{2} = \\frac{\\pi}{2}\\)，\\(\\sin\\left(\\frac{\\pi}{2}\\right) = 1\\)，故 \\(F\\left(\\frac{\\pi}{3}\\right) = \\frac{4}{\\left(\\frac{\\pi}{3}\\right)} = \\frac{12}{\\pi} \\approx 3.8197186342\\)；幅度相同。此角頻率對應 \\(\\nu = \\frac{1}{6}\\,\\mathrm{Hz}\\)。",
+                                           "若 \\(\\omega = \\pi\\)，\\(\\sin\\left(\\frac{3\\,\\pi}{2}\\right) = -1\\)，所以 \\(F\\left(\\pi\\right) = \\frac{-4}{\\pi}\\)，幅度則為 \\(\\frac{4}{\\pi}\\)；不能將帶符號的轉換值與幅度混為一談。",
+                                           "獨立核對 \\({e}^{\\left(-\\left|t\\right|\\right)}\\)：\\(a = 1\\)，\\(\\omega = 0\\) 時 \\(F = 2\\)，\\(\\omega = 1\\) 時 \\(F = 1\\)。高斯 \\({e}^{\\left(-{t}^{2}\\right)}\\) 在 \\(\\omega = 0\\) 時 \\(F = \\sqrt{\\pi} \\approx 1.7724538509\\)。"
+                                       ],
+                    "answer":  "矩形的 \\(F\\left(0\\right) = 6\\)，\\(F\\left(\\frac{\\pi}{3}\\right) = \\frac{12}{\\pi}\\)；兩者皆為實數。零頻率值是信號面積，不是 \\(\\frac{0}{0}\\)。"
+                },
+    "matlab_code":  "% 雙邊角頻率傅立葉轉換，反轉換係數為 1/(2*pi)\nfunctionId = \u0027rectangle\u0027; % exponential、gaussian 或 rectangle\na = 1; A = 2; T = 3; % 固定函數的參數\nomega = 0; % 角頻率 rad/s；普通頻率 Hz = omega/(2*pi)\nvalidateattributes(omega,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\nswitch functionId\n    case \u0027exponential\u0027\n        validateattributes(a,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\n        F = 2*a/(a^2+omega^2);\n        kernel = @(t) exp(-a*abs(t)).*exp(-1i*omega*t);\n        Fq = integral(kernel,-Inf,0,\u0027AbsTol\u0027,1e-10,\u0027RelTol\u0027,1e-9) ...\n            + integral(kernel,0,Inf,\u0027AbsTol\u0027,1e-10,\u0027RelTol\u0027,1e-9); % 分段處理絕對值\n    case \u0027gaussian\u0027\n        validateattributes(a,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\n        F = (sqrt(pi)/sqrt(a))*exp(-(omega/(2*sqrt(a)))^2);\n        kernel = @(t) exp(-a*t.^2).*exp(-1i*omega*t);\n        Fq = integral(kernel,-Inf,Inf,\u0027AbsTol\u0027,1e-10,\u0027RelTol\u0027,1e-9);\n    case \u0027rectangle\u0027\n        validateattributes(A,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\n        validateattributes(T,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\n        if omega == 0\n            F = A*T; % 使用極限，絕不計算 0/0\n        else\n            z = omega*T/2; % 使用未正規化 sin(z)/z\n            if ~isfinite(z), error(\u0027Fourier:NonFinite\u0027,\u0027相位數值溢位。\u0027); end\n            if abs(z) \u003c 1e-4\n                sincValue = 1-z^2/6+z^4/120; % 小參數級數\n            else\n                sincValue = sin(z)/z;\n            end\n            F = A*T*sincValue;\n        end\n        kernel = @(t) A*ones(size(t)).*exp(-1i*omega*t);\n        Fq = integral(kernel,-T/2,T/2,\u0027AbsTol\u0027,1e-10,\u0027RelTol\u0027,1e-9);\n    otherwise\n        error(\u0027Fourier:Function\u0027,\u0027不支援此函數。\u0027);\nend\nif ~isfinite(F), error(\u0027Fourier:NonFinite\u0027,\u0027解析結果超出數值範圍。\u0027); end\nmagnitude = abs(F); % 幅度非負，F 本身可能為負\ndifference = abs(F-Fq); % 與獨立積分比較\nassert(isfinite(difference) \u0026\u0026 difference \u003c= 1e-8*max(1,abs(F)));\nfprintf(\u0027omega = %.12g rad/s；F = %.12g；幅度 = %.12g\\n\u0027,omega,F,magnitude);\nfprintf(\u0027積分核對誤差 %.3e\\n\u0027,difference);\n% MATLAB sinc(u)=sin(pi*u)/(pi*u)；不可直接誤用 sinc(omega*T/2)\n",
+    "matlab_explanation":  [
+                               "不用符號工具箱；解析式與 integral 的數值積分互相核對。",
+                               "exponential 在零點分成兩半積分，以明確處理 abs(t)。",
+                               "gaussian 使用 t.^2 做逐元素平方；omega 是角頻率。",
+                               "rectangle 的 \\(\\omega = =\\,0\\) 分支直接算 A*T，接近零則採 \\(\\frac{\\sin\\left(z\\right)}{z}\\) 的級數。",
+                               "\\(\\mathrm{magnitude} = \\left|F\\right|\\) 與 \\(F\\) 分開顯示；MATLAB 內建 sinc 的 \\(\\pi\\) 正規化與本式不同。",
+                               "數值積分允許有限誤差，極端高頻或尺度未保證都可靠；本例以指定容許誤差檢查。"
+                           ],
+    "advantages":  [
+                       "可把時間形狀與頻譜寬度、對稱性及振盪成分連結。",
+                       "固定解析轉換對能快速提供可核對的數值結果。"
+                   ],
+    "limitations":  [
+                        "本計算器只支援三種函數，不做任意符號積分、FFT、反傅立葉或分佈計算。",
+                        "不能把本頁三種實偶函數的實數結果推廣到所有信號。",
+                        "雙精度計算可能捨入、下溢或溢位；過大相位的三角函數精度也有限。"
+                    ],
+    "common_mistakes":  [
+                            "漏掉角頻率與 Hz 的 \\(2\\,\\pi\\) 換算，或混用來源的轉換慣例。",
+                            "矩形把 \\(T\\) 當半寬，導致積分範圍與頻譜比例錯誤。",
+                            "\\(\\omega = 0\\) 直接套非零公式造成 \\(\\frac{0}{0}\\)。",
+                            "以為 \\(F\\) 永遠非負；矩形頻譜有負旁瓣，但幅度非負。",
+                            "將連續傅立葉轉換與離散 FFT 當成相同運算。"
+                        ],
+    "calculator_id":  "fourier-transform",
+    "sources":  [
+                    {
+                        "title":  "Fourier Transform--Gaussian",
+                        "author":  "Eric W. Weisstein, Wolfram MathWorld",
+                        "url":  "https://mathworld.wolfram.com/FourierTransformGaussian.html",
+                        "sections":  "高斯轉換對",
+                        "note":  "來源採 e^(-2πikt)；本包令 ω=2πk，得到 exp(-ω^2/(4a))。不沿用未實際取得的課本頁碼。"
+                    },
+                    {
+                        "title":  "Fourier Transform--Exponential Function",
+                        "author":  "Eric W. Weisstein, Wolfram MathWorld",
+                        "url":  "https://mathworld.wolfram.com/FourierTransformExponentialFunction.html",
+                        "sections":  "偶指數與單邊指數",
+                        "note":  "來源參數 a=2πk0、ω=2πk；換算後為本包的 2a/(a^2+ω^2)。"
+                    },
+                    {
+                        "title":  "Fourier Transform--Rectangle Function",
+                        "author":  "Eric W. Weisstein, Wolfram MathWorld",
+                        "url":  "https://mathworld.wolfram.com/FourierTransformRectangleFunction.html",
+                        "sections":  "矩形轉換與 sinc",
+                        "note":  "本包依所定義的 A、T 與角頻率自行推導，避免來源 sinc 正規化的記號差異。整包仍待全面查核。"
+                    },
+                    {
+                        "title":  "自編矩形例題與數值積分核對",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "example、matlab_code",
+                        "note":  "例題與程式自編；status=draft。"
+                    }
+                ],
+    "status":  "draft"
+}

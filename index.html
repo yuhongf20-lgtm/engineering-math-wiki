@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="工程數學模組化筆記庫：觀念、公式與數值方法的學習空間。">
+  <title>Engineering Math Wiki｜工程數學模組化筆記庫</title>
+  <link id="katex-style" rel="stylesheet" href="./assets/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <script src="./assets/vendor/katex/katex.min.js" defer></script>
+  <script src="./assets/js/math-notation.js" defer></script>
+  <script src="./assets/js/math-renderer.js" defer></script>
+  <script src="./assets/js/calculators.js" defer></script>
+  <script src="./assets/js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳至主要內容</a>
+  <aside class="sidebar">
+    <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true">∑</span><span>ENGINEERING<br>MATH WIKI</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="navigation">開啟分類導覽</button>
+    <nav id="navigation" aria-label="主要導覽">
+      <p class="eyebrow">學習目錄 / LIBRARY</p>
+      <a href="#home" data-route="home">首頁總覽</a>
+      <a href="#category/root-finding" data-route="root-finding">Root Finding<span>求根方法</span></a>
+      <a href="#category/linear-systems" data-route="linear-systems">Linear Systems<span>線性方程組</span></a>
+      <a href="#category/laplace-transform" data-route="laplace-transform">Laplace Transform<span>拉普拉斯轉換</span></a>
+      <a href="#category/fourier-transform" data-route="fourier-transform">Fourier Transform<span>傅立葉轉換</span></a>
+    </nav>
+    <p class="sidebar-footer">工程數學模組化筆記庫<br><span>從觀念出發，逐步理解。</span></p>
+  </aside>
+  <main id="main" tabindex="-1">
+    <header class="page-header"><span class="eyebrow">ENGINEERING / KNOWLEDGE BASE</span><span class="badge">8 份筆記 · 教材草稿</span></header>
+    <section class="hero" aria-labelledby="site-title">
+      <p class="eyebrow accent">EXPLORE. UNDERSTAND. SOLVE.</p>
+      <h1 id="site-title">Engineering<br>Math Wiki<span class="accent">.</span></h1>
+      <p class="subtitle">工程數學模組化筆記庫</p>
+      <p class="muted">以獨立筆記串起觀念、公式與數值方法，建立可持續擴充的學習路徑。</p>
+    </section>
+    <section class="search-panel" aria-label="搜尋筆記">
+      <label for="search">搜尋筆記名稱</label>
+      <input id="search" type="search" placeholder="輸入中文或英文名稱…" autocomplete="off" aria-describedby="search-hint">
+      <p id="search-hint" class="muted">搜尋目前分類；首頁可搜尋全部筆記。</p>
+    </section>
+    <div id="load-error" class="error" role="alert" hidden></div>
+    <noscript><p class="error">請啟用 JavaScript，以載入分類與筆記索引。</p></noscript>
+    <section id="categories-section" aria-labelledby="categories-title">
+      <div class="section-heading"><h2 id="categories-title">探索分類</h2><span class="muted">01 / CATEGORIES</span></div>
+      <div id="category-cards" class="category-grid"></div>
+    </section>
+    <section aria-labelledby="notes-title">
+      <div class="section-heading"><h2 id="notes-title">所有筆記</h2><span id="note-count" class="muted"></span></div>
+      <div id="notes" aria-live="polite" aria-busy="true"><p class="empty">正在載入筆記索引…</p></div>
+    </section>
+    <p id="math-status" role="status" hidden></p>
+    <section id="note-detail" class="detail" aria-labelledby="detail-title">
+      <span class="eyebrow">NOTE WORKSPACE</span>
+      <h2 id="detail-title">詳細筆記區</h2>
+      <p class="muted">尚未選取筆記。未來載入資料包後，將在此呈現完整教學內容。</p>
+      <ul class="section-preview"><li>觀念與先備知識</li><li>公式與符號</li><li>使用條件與步驟</li><li>完整例題</li><li>MATLAB 程式</li><li>互動計算（實作後提供）</li><li>優缺點與常見錯誤</li><li>參考來源</li></ul>
+    </section>
+    <footer class="main-footer">Engineering Math Wiki <span>學習 · 查詢 · 複習</span></footer>
+  </main>
+</body>
+</html>
