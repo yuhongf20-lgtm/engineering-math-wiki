@@ -1,0 +1,83 @@
+{
+    "schema_version":  1,
+    "categories":  [
+                       {
+                           "id":  "root-finding",
+                           "title_zh":  "求根方法",
+                           "title_en":  "Root Finding"
+                       },
+                       {
+                           "id":  "linear-systems",
+                           "title_zh":  "線性方程組",
+                           "title_en":  "Linear Systems"
+                       },
+                       {
+                           "id":  "laplace-transform",
+                           "title_zh":  "拉普拉斯轉換",
+                           "title_en":  "Laplace Transform"
+                       },
+                       {
+                           "id":  "fourier-transform",
+                           "title_zh":  "傅立葉轉換",
+                           "title_en":  "Fourier Transform"
+                       }
+                   ],
+    "packs":  [
+                  {
+                      "id":  "bisection",
+                      "category":  "root-finding",
+                      "path":  "./data/packs/root-finding/bisection.json",
+                      "title_zh":  "二分法",
+                      "title_en":  "Bisection Method"
+                  },
+                  {
+                      "id":  "newton-raphson",
+                      "category":  "root-finding",
+                      "path":  "./data/packs/root-finding/newton-raphson.json",
+                      "title_zh":  "牛頓法",
+                      "title_en":  "Newton-Raphson Method"
+                  },
+                  {
+                      "id":  "false-position",
+                      "category":  "root-finding",
+                      "path":  "./data/packs/root-finding/false-position.json",
+                      "title_zh":  "假位法",
+                      "title_en":  "False Position Method"
+                  },
+                  {
+                      "id":  "gaussian-elimination",
+                      "category":  "linear-systems",
+                      "path":  "./data/packs/linear-systems/gaussian-elimination.json",
+                      "title_zh":  "高斯消去法",
+                      "title_en":  "Gaussian Elimination"
+                  },
+                  {
+                      "id":  "gauss-jordan",
+                      "category":  "linear-systems",
+                      "path":  "./data/packs/linear-systems/gauss-jordan.json",
+                      "title_zh":  "高斯－喬登消去法",
+                      "title_en":  "Gauss-Jordan Elimination"
+                  },
+                  {
+                      "id":  "gauss-seidel",
+                      "category":  "linear-systems",
+                      "path":  "./data/packs/linear-systems/gauss-seidel.json",
+                      "title_zh":  "高斯－賽德法",
+                      "title_en":  "Gauss-Seidel Method"
+                  },
+                  {
+                      "id":  "laplace-transform",
+                      "category":  "laplace-transform",
+                      "path":  "./data/packs/laplace-transform/laplace-transform.json",
+                      "title_zh":  "拉普拉斯轉換",
+                      "title_en":  "Laplace Transform"
+                  },
+                  {
+                      "id":  "fourier-transform",
+                      "category":  "fourier-transform",
+                      "path":  "./data/packs/fourier-transform/fourier-transform.json",
+                      "title_zh":  "傅立葉轉換",
+                      "title_en":  "Fourier Transform"
+                  }
+              ]
+}

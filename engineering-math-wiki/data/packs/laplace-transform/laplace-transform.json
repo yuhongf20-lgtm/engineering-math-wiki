@@ -1,0 +1,134 @@
+{
+    "id":  "laplace-transform",
+    "category":  "laplace-transform",
+    "type":  "concept",
+    "title_zh":  "拉普拉斯轉換",
+    "title_en":  "Laplace Transform",
+    "summary":  "將 \\(t \\ge 0\\) 的時域函數映射到複數頻率 \\(s\\) 平面；解析公式必須和收斂區域 ROC 一起解讀。",
+    "prerequisites":  [
+                          "廣義積分與指數函數",
+                          "複數、共軛與複數除法",
+                          "時域、頻率與衰減概念"
+                      ],
+    "concept":  "單邊拉普拉斯轉換把 \\(t \\ge 0\\) 的函數乘上 \\({e}^{\\left(-\\sigma\\,t\\right)}\\) 的權重與 \\({e}^{\\left(-\\mathrm{j}\\,\\omega\\,t\\right)}\\) 的振盪核後積分。\\(\\sigma\\) 控制指數加權，\\(\\omega\\) 表示角頻率。它常用於初值問題與線性時不變系統的分析；本頁只評估固定轉換對，不解微分方程或反轉換。只給 \\(F\\left(s\\right)\\) 而不給 ROC，可能誤把解析延拓當成原積分。",
+    "formulas":  [
+                     "單邊定義：\\[F(s)=\\int_0^\\infty f(t)e^{-st}\\,\\mathrm{d}t,\\qquad s=\\sigma+\\mathrm{j}\\omega,\\quad \\mathrm{j}^2=-1.\\]",
+                     "核函數：\\[e^{-st}=e^{-\\sigma t}\\bigl(\\cos(\\omega t)-\\mathrm{j}\\sin(\\omega t)\\bigr).\\]",
+                     "\\(f(t)=1\\)：\\[F(s)=\\frac1s,\\qquad \\operatorname{Re}s\u003e0.\\]",
+                     "\\(f(t)=t\\)：\\[F(s)=\\frac1{s^2},\\qquad \\operatorname{Re}s\u003e0.\\]",
+                     "\\(f(t)=e^{-at}\\)：\\[F(s)=\\frac1{s+a},\\qquad \\operatorname{Re}s\u003e-a\\]其中 \\(a\\) 為有限實數。",
+                     "\\(f(t)=\\sin(bt)\\)：\\[F(s)=\\frac b{s^2+b^2},\\qquad b\u003e0,\\quad \\operatorname{Re}s\u003e0.\\]",
+                     "實數 \\(c\\) 的複數除法：\\[\\frac c{u+\\mathrm{j}v}=\\frac{cu}{u^2+v^2}-\\mathrm{j}\\frac{cv}{u^2+v^2}\\]分母非零。",
+                     "若 \\(f\\) 在有限區間分段連續，且存在 \\(M,c,t_0\\) 使 \\(t\\ge t_0\\) 時 \\(\\lvert f(t)\\rvert\\le Me^{ct}\\)，則 \\(\\operatorname{Re}s\u003ec\\) 是常用的充分收斂條件；不保證此 \\(c\\) 就是精確 ROC 邊界。"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "t, t0",
+                        "meaning":  "時間與指數階界開始成立的時間。",
+                        "unit":  "\\(s\\)（秒）"
+                    },
+                    {
+                        "symbol":  "\\(s , \\sigma , \\operatorname{Re}\\left(s\\right)\\)",
+                        "meaning":  "複數頻率、其實部與取實部操作。",
+                        "unit":  "\\(\\frac{1}{s}\\)"
+                    },
+                    {
+                        "symbol":  "\\(\\omega\\)",
+                        "meaning":  "\\(s\\) 的虛部係數，即角頻率；本頁不用 Hz 當成 \\(\\frac{\\mathrm{rad}}{s}\\)。",
+                        "unit":  "\\(\\frac{\\mathrm{rad}}{s}\\)"
+                    },
+                    {
+                        "symbol":  "j, u, v, c",
+                        "meaning":  "虛數單位、複數分母實虛部與除法分子；指數階公式中的 \\(c\\) 則為成長界。",
+                        "unit":  "依函數與單位設定"
+                    },
+                    {
+                        "symbol":  "\\(f\\left(t\\right) , F\\left(s\\right)\\)",
+                        "meaning":  "時域函數及其單邊拉普拉斯轉換；\\(F\\) 的單位為 \\(f\\) 單位乘秒。",
+                        "unit":  "依函數與單位設定"
+                    },
+                    {
+                        "symbol":  "a, b",
+                        "meaning":  "指數衰減／成長參數與正弦角頻率；\\(b\\) 必須大於零。",
+                        "unit":  "\\(a\\)：\\(\\frac{1}{s}\\)；\\(b\\)：\\(\\frac{\\mathrm{rad}}{s}\\)"
+                    },
+                    {
+                        "symbol":  "M, ROC",
+                        "meaning":  "指數階上界常數與 Region of Convergence（收斂區域）。",
+                        "unit":  "依函數與單位設定"
+                    }
+                ],
+    "conditions":  [
+                       "本包採單邊、一般函數的廣義積分，不以分佈或 Abel 邊界值代替積分收斂。",
+                       "固定選項的 ROC 為嚴格不等式；邊界也不可當成有效積分值。例如 \\(f\\left(t\\right) = 1\\)、\\(s = 0\\) 時發散。",
+                       "\\({e}^{\\left(-a\\,t\\right)}\\) 的 \\(a\\) 可為負，此時信號增長，必須 \\(\\sigma \u003e -a\\) 才能收斂。\\(\\sin\\left(b\\,t\\right)\\) 要求 \\(b \u003e 0\\)。",
+                       "所有輸入須為有限實數；複數由 \\(\\sigma\\)、\\(\\omega\\) 兩個實數建立。運算溢位、零分母等須回報數值錯誤。",
+                       "只有在虛軸落於相關 ROC 且使用相容時域定義時，才可用 \\(s = \\mathrm{j}\\,\\omega\\) 連結傅立葉轉換；不可一律直接代入。"
+                   ],
+    "steps":  [
+                  "確認是單邊定義，先選固定時域函數並確認參數。",
+                  "依函數寫出 \\(F\\left(s\\right)\\) 與 ROC，不省略收斂條件。",
+                  "把輸入寫成 \\(s = \\sigma + \\mathrm{j}\\,\\omega\\)，先比較 \\(\\sigma\\) 與 ROC 邊界。",
+                  "ROC 不成立時停止，不顯示解析延拓數值作為轉換結果。",
+                  "ROC 成立時代入解析式，用複數乘法／共軛除法求實部與虛部。",
+                  "檢查有限值、標明複數結果與單位；若要數值積分核對，可使用附載 MATLAB 程式。"
+              ],
+    "example":  {
+                    "problem":  "自編例題：求 \\(f\\left(t\\right) = {e}^{\\left(-2\\,t\\right)}\\) 的單邊拉普拉斯轉換，並在 \\(s = 1 + \\mathrm{j}\\) 評估；再比較一個 ROC 外的點。",
+                    "given":  [
+                                  "\\(a = 2\\)，\\(\\sigma = 1\\)，\\(\\omega = 1\\)，所以 \\(s = 1 + \\mathrm{j}\\)。",
+                                  "採單邊積分 \\(t \\ge 0\\)，不對 \\(t \u003c 0\\) 的函數做假設或延伸積分。"
+                              ],
+                    "solution_steps":  [
+                                           "代入定義：\\(F\\left(s\\right) = \\int_{0}^{\\infty}\\,{e}^{\\left(-2\\,t\\right)} \\, {e}^{\\left(-s\\,t\\right)}\\,\\,\\mathrm{d}t = \\int_{0}^{\\infty}\\,{e}^{\\left(-\\left(s + 2\\right)\\,t\\right)}\\,\\,\\mathrm{d}t\\)。",
+                                           "反導函數為 \\(\\frac{-{e}^{\\left(-\\left(s + 2\\right)\\,t\\right)}}{\\left(s + 2\\right)}\\)。要使上限的指數項趨零，需 \\(\\operatorname{Re}\\left(s + 2\\right) \u003e 0\\)，即 \\(\\sigma \u003e -2\\)。",
+                                           "因此 \\(F\\left(s\\right) = \\frac{1}{\\left(s + 2\\right)}\\)，ROC 為 \\(\\operatorname{Re}\\left(s\\right) \u003e -2\\)。輸入 \\(\\sigma = 1\\) 滿足 \\(1 \u003e -2\\)。",
+                                           "代入 \\(s = 1 + \\mathrm{j}\\)，分母 \\(s + 2 = 3 + \\mathrm{j}\\)。乘共軛：\\(\\frac{\\left(3 - \\mathrm{j}\\right)}{\\left(\\left(3 + \\mathrm{j}\\right) \\, \\left(3 - \\mathrm{j}\\right)\\right)} = \\frac{\\left(3 - \\mathrm{j}\\right)}{10} = 0.3 - 0.1\\,\\mathrm{j}\\)。",
+                                           "若 \\(\\omega = 0\\)、\\(s = 1\\)，則 \\(F\\left(1\\right) = \\frac{1}{3}\\)。若改成 \\(s = -3\\)，雖解析式給 -1，但積分核變成 \\({e}^{t}\\)，廣義積分發散，不能把 -1 當作此轉換值。",
+                                           "額外核對 \\(\\sin\\left(2\\,t\\right)\\)：在 \\(s = 1\\) 的 ROC 內，\\(F\\left(1\\right) = \\frac{2}{\\left({1}^{2} + {2}^{2}\\right)} = 0.4\\)。"
+                                       ],
+                    "answer":  "在 \\(s = 1 + \\mathrm{j}\\)，\\(F\\left(s\\right) = 0.3 - 0.1\\,\\mathrm{j}\\)；ROC 外不提供有效轉換結果。"
+                },
+    "matlab_code":  "% 單邊拉普拉斯：固定轉換對，不需要 Symbolic Math Toolbox\nfunctionId = \u0027exponential\u0027; % constant、ramp、exponential 或 sine\na = 2; b = 2; % a 為實數；sine 模式要求 b\u003e0\nsigma = 1; omega = 1; % s 的實部與虛部，omega 使用 rad/s\nvalidateattributes(sigma,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\nvalidateattributes(omega,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\ns = complex(sigma,omega); % 明確建立複數，避免把 j 當成變數\nboundary = 0; % constant、ramp、sine 的 ROC 邊界\nswitch functionId\n    case \u0027constant\u0027\n        kernel = @(t) exp(-s*t); % f(t)=1 與核函數相乘\n    case \u0027ramp\u0027\n        kernel = @(t) t.*exp(-s*t); % 逐元素乘法\n    case \u0027exponential\u0027\n        validateattributes(a,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\n        boundary = -a; % 允許 a 為負，但 ROC 必須重新檢查\n        kernel = @(t) exp(-(s+a)*t); % 合併指數，減少溢位\n    case \u0027sine\u0027\n        validateattributes(b,{\u0027double\u0027},{\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\n        kernel = @(t) sin(b*t).*exp(-s*t);\n    otherwise\n        error(\u0027Laplace:Function\u0027,\u0027不支援此函數。\u0027);\nend\nif sigma \u003c= boundary\n    error(\u0027Laplace:ROC\u0027,\u0027s 不在 ROC，單邊拉普拉斯積分不收斂，不輸出解析延拓值。\u0027);\nend\nswitch functionId\n    case \u0027constant\u0027, F = 1/s;\n    case \u0027ramp\u0027, F = 1/s^2;\n    case \u0027exponential\u0027, F = 1/(s+a);\n    case \u0027sine\u0027, F = b/(s^2+b^2);\nend\nif ~isfinite(real(F)) || ~isfinite(imag(F))\n    error(\u0027Laplace:NonFinite\u0027,\u0027結果超出數值表示範圍。\u0027);\nend\nFq = integral(kernel,0,Inf,\u0027AbsTol\u0027,1e-10,\u0027RelTol\u0027,1e-9); % 獨立數值積分核對\ndifference = abs(F-Fq); % 比較解析式與數值積分\nassert(isfinite(difference) \u0026\u0026 difference \u003c= 1e-8*max(1,abs(F)));\nfprintf(\u0027ROC: Re(s) \u003e %.12g\\n\u0027,boundary);\nfprintf(\u0027F(s) = %.12g %+.12gj；積分核對誤差 %.3e\\n\u0027,real(F),imag(F),difference);\n% 數值積分只是此輸入的核對，不是任意函數的符號積分工具\n",
+    "matlab_explanation":  [
+                               "functionId 只選固定轉換對；不依賴符號工具箱，也不在瀏覽器執行 MATLAB。",
+                               "complex(sigma,omega) 避免 MATLAB 中 \\(\\mathrm{j}\\) 被使用者變數覆寫。",
+                               "boundary 與 ROC 檢查先於任何解析結果輸出，含等號的邊界也被拒絕。",
+                               "exponential 的積分核合併為 exp(-(s+a)*t)，以減少相反指數分開計算造成的溢位。",
+                               "integral 以 \\(\\mathrm{AbsTol} = 1\\times10^{-10}\\)、\\(\\mathrm{RelTol} = 1\\times10^{-9}\\) 獨立數值核對；assert 比較誤差。不代表任意極端參數皆能可靠積分。"
+                           ],
+    "advantages":  [
+                       "能將時間成長、衰減與振盪統一放入複數頻率描述。",
+                       "適合配合微分方程、初值與系統轉移函數分析。"
+                   ],
+    "limitations":  [
+                        "ROC 與時域支撐不可省略，解析式本身不足以描述原積分。",
+                        "本計算器只涵蓋四個固定函數，不做任意符號積分、反拉普拉斯或微分方程求解。",
+                        "雙精度運算有範圍與捨入限制；極端參數可能回報數值錯誤。"
+                    ],
+    "common_mistakes":  [
+                            "把單邊積分誤寫成整條實軸的雙邊積分。",
+                            "ROC 外直接算解析式，將解析延拓錯當積分值。",
+                            "忽略 \\({s}^{2} = \\left({\\sigma}^{2} - {\\omega}^{2}\\right) + \\mathrm{j} \\, 2\\,\\sigma\\,\\omega\\)，將複數當實數平方。",
+                            "混淆 \\({e}^{\\left(-a\\,t\\right)}\\) 與 \\({e}^{\\left(a\\,t\\right)}\\) 的位移符號。",
+                            "把 \\(\\omega\\) 的 \\(\\frac{\\mathrm{rad}}{s}\\) 與一般頻率的 Hz 混用。"
+                        ],
+    "calculator_id":  "laplace-transform",
+    "sources":  [
+                    {
+                        "title":  "The Laplace Transform, 18.031",
+                        "author":  "MIT, Haynes Miller and Jeremy Orloff",
+                        "url":  "https://math.mit.edu/~hrm/18.031/laplace-notes.pdf",
+                        "sections":  "Definition、region of convergence、Laplace transform table",
+                        "note":  "已查閱定義與 ROC；自編例題與程式另作測試。整包仍待全面來源與內容查核。"
+                    },
+                    {
+                        "title":  "自編複數代入例題與 MATLAB 核對",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "example、matlab_code",
+                        "note":  "未引用未取得的課本頁碼；status 維持 draft。"
+                    }
+                ],
+    "status":  "draft"
+}

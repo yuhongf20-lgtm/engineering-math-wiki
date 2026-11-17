@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>八份筆記與計算器自動化測試</title>
+<script src="../assets/js/calculators.js"></script>
+<script src="./calculators.test.js"></script>
+<script src="./newton-raphson.test.js"></script>
+<script src="./pack-examples.test.js"></script>
+<script src="./extended-calculators.test.js"></script>
+<script src="./transforms.test.js"></script>
+<style>body{background:#0b0e13;color:#e8eef5;font:14px/1.6 system-ui}pre{white-space:pre-wrap}iframe{border:1px solid #62d9ed;width:390px;height:844px;max-width:100%}</style>
+</head>
+<body>
+<h1>八份筆記與計算器自動化測試</h1>
+<p>請透過本機 HTTP 開啟本頁；每次重新整理會重跑計算與介面測試。下方為實際網站。</p>
+<pre id="report" role="status">RUNNING</pre>
+<iframe id="site" title="網站測試視窗" src="../index.html#note/bisection"></iframe>
+<script>
+(async()=>{
+ const report=document.querySelector("#report"), frame=document.querySelector("#site");
+ const lines=[];
+ const check=(ok,title)=>{if(!ok)throw Error(title);lines.push("PASS "+title);};
+ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const wait=async(fn)=>{for(let i=0;i<200;i++){if(fn())return;await sleep(25);}throw Error("等待介面逾時");};
+ try {
+ const core=runCalculatorTests(MathCalculators);
+ core.passed.forEach(title=>lines.push("PASS "+title));
+ lines.push("DEFAULT RESULT: "+JSON.stringify({xr:core.defaultResult.xr,fr:core.defaultResult.fr,iterations:core.defaultResult.iterations}));
+ await wait(()=>frame.contentDocument.querySelector(".calculator-form"));
+ const w=frame.contentWindow,d=frame.contentDocument;
+ const read=node=>w.MathDisplay?w.MathDisplay.sourceText(node):(node?.textContent||"");
+ const pack=await(await fetch("../data/packs/root-finding/bisection.json")).json();
+ const entry={id:pack.id,category:pack.category,title_zh:pack.title_zh,title_en:pack.title_en};
+ const submit=()=>d.querySelector(".calculator-form").dispatchEvent(new w.Event("submit",{cancelable:true}));
+ const value=(name,v)=>{const input=d.querySelector("#calc-"+name);input.value=v;input.dispatchEvent(new w.Event("input",{bubbles:true}));};
+ check(d.querySelector("#calc-functionId").options.length===3,"UI 三個固定函數");
+ check(d.querySelector("#calc-xl").value==="1"&&d.querySelector("#calc-xu").value==="2"&&d.querySelector("#calc-tolerance").value==="0.0001"&&d.querySelector("#calc-maxIterations").value==="50","UI 預設參數");
+ check(read(d.querySelector("#calculator-help")).includes("|f(xr)| <= tolerance")&&read(d.querySelector("#calculator-help")).includes("相對近似誤差"),"UI 明示停止準則差異");
+ submit();
+ check(d.querySelector(".calculator-success")&&d.querySelectorAll(".iteration-table tbody tr").length===core.defaultResult.iterations,"UI 正常計算、結果與迭代表");
+ check(read(d.querySelector(".calculator-output")).includes(String(core.defaultResult.xr)),"UI 顯示近似根");
+ value("maxIterations","1");check(!read(d.querySelector(".calculator-output")),"參數變更清除舊結果");
+ submit();check(read(d.querySelector(".calculator-warning")).includes("尚未收斂至指定條件"),"UI 迭代不足提示");
+ value("xl","2");value("xu","3");submit();check(read(d.querySelector(".calculator-status.error")).includes("同號"),"UI 同號錯誤");
+ value("xl","1");value("xu","2");
+ for(const invalid of ["0","-1",""]){value("tolerance",invalid);submit();check(Boolean(d.querySelector(".calculator-status.error")),"UI 無效 tolerance "+invalid);}
+ value("tolerance","0.0001");value("maxIterations","1.5");submit();check(Boolean(d.querySelector(".calculator-status.error")),"UI 非整數迭代次數");
+ value("maxIterations","1001");submit();check(Boolean(d.querySelector(".calculator-status.error")),"UI 迭代次數上限");
+ value("maxIterations","50");
+ value("functionId","cosine");value("xl","0");value("xu","1");submit();check(Boolean(d.querySelector(".calculator-success")),"UI 切換 cos 函數");
+ value("functionId","cubic");value("xl","1");value("xu","2");submit();check(Boolean(d.querySelector(".calculator-success")),"UI 切換三次函數");
+ check(d.documentElement.scrollWidth<=390,"390px 手機版無整頁橫向溢出");
+ check(w.getComputedStyle(d.querySelector(".calculator-form")).gridTemplateColumns.split(" ").length===1,"手機表單單欄");
+ check(read(d.querySelector("pre code"))===pack.matlab_code,"既有 MATLAB 換行縮排未改");
+ const collect=v=>typeof v==="string"?[v]:v&&typeof v==="object"?Object.values(v).flatMap(collect):[];
+ for(const key of ["summary","concept","prerequisites","formulas","symbols","conditions","steps","example","matlab_explanation","advantages","limitations","common_mistakes","sources"]) {
+ check(collect(pack[key]).every(t=>read(d.querySelector("#note-detail")).includes(t)),"教學欄位保留 "+key);
+ }
+ w.renderPack({...pack,calculator_id:null},entry);check(!d.querySelector(".calculator-form"),"null calculator 不顯示執行按鈕");
+ w.renderPack({...pack,calculator_id:"not-implemented"},entry);check(!d.querySelector(".calculator-form"),"未實作 calculator 不顯示執行按鈕");
+ w.location.hash="#home";await wait(()=>!d.querySelector("#notes").closest("section").hidden);
+ for(const q of ["二分法","Bisection"]){
+ const input=d.querySelector("#search");input.value=q;input.dispatchEvent(new w.Event("input"));
+ check(d.querySelectorAll(".note-list a").length===1,"搜尋 "+q);
+ }
+ d.querySelector(".note-list a").click();await wait(()=>d.querySelector(".calculator-form")&&!d.querySelector("#note-detail").hidden);
+ check(true,"搜尋結果可進入計算器筆記");
+ const searchInput=d.querySelector("#search");searchInput.value="";searchInput.dispatchEvent(new w.Event("input"));
+ w.location.hash="#category/root-finding";await sleep(100);check(d.querySelectorAll(".note-list a").length===3,"Root Finding 導覽");
+ w.location.hash="#category/linear-systems";await sleep(100);check(d.querySelectorAll(".note-list a").length===3,"Linear Systems 導覽");
+ w.location.hash="#note/bisection";await wait(()=>d.querySelector(".calculator-form")&&!d.querySelector("#note-detail").hidden);submit();
+ frame.style.width="1280px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=1280,"1280px 桌面版無整頁橫向溢出");
+ frame.style.width="390px";
+
+ const newtonCore=runNewtonTests(MathCalculators);
+ newtonCore.passed.forEach(title=>lines.push("PASS "+title));
+ lines.push("NEWTON DEFAULT: "+JSON.stringify({xr:newtonCore.defaultResult.xr,fr:newtonCore.defaultResult.fr,iterations:newtonCore.defaultResult.iterations}));
+ const manifest=await(await fetch("../data/manifest.json")).json();
+ w.validateManifest(manifest);
+ check(manifest.categories.length===4&&manifest.packs.length===8,"索引四分類與八資料包");
+ const ids=new Set();
+ for(const item of manifest.packs){
+  const data=await(await fetch("../"+item.path.slice(2))).json();
+  w.validatePack(data,item);
+  check(!ids.has(data.id),"JSON ID 唯一 "+data.id);ids.add(data.id);
+  check(data.calculator_id===data.id,"計算器 ID 存在 "+data.id);
+ }
+ w.location.hash="#home";await wait(()=>!d.querySelector("#notes").closest("section").hidden);
+ for(const q of ["牛頓法","Newton","newton-raphson"]){
+  const input=d.querySelector("#search");input.value=q;input.dispatchEvent(new w.Event("input"));
+  check(d.querySelectorAll(".note-list a").length===1&&d.querySelector(".note-list a").getAttribute("href")==="#note/newton-raphson","Newton 搜尋 "+q);
+ }
+ d.querySelector(".note-list a").click();await wait(()=>d.querySelector("#calc-x0")&&!d.querySelector("#note-detail").hidden);
+ const newtonPack=await(await fetch("../data/packs/root-finding/newton-raphson.json")).json();
+ check(read(d.querySelector("#detail-title")).includes("牛頓法"),"Newton 點擊載入筆記");
+ check(d.querySelector("#calc-x0").value==="1.5"&&d.querySelector("#calc-tolerance").value==="0.0001"&&d.querySelector("#calc-maxIterations").value==="50","Newton UI 預設值");
+ check(d.querySelector("#calc-functionId").options.length===3&&read(d.querySelector("#calc-functionId")).includes("2x"),"Newton UI 三個函數與導數");
+ submit();check(d.querySelector(".calculator-success")&&d.querySelectorAll(".iteration-table tbody tr").length===2,"Newton UI 成功與兩列更新");
+ check(read(d.querySelector(".calculator-output")).includes(String(newtonCore.defaultResult.xr)),"Newton UI 近似根");
+ check(read(d.querySelector("#calculator-help")).includes("|f(x)| <= tolerance"),"Newton UI 殘差意義清楚");
+ value("x0","0");submit();check(read(d.querySelector(".calculator-warning")).includes("導數"),"Newton UI 零導數失敗");
+ value("x0","1e-15");submit();check(read(d.querySelector(".calculator-warning")).includes("接近零"),"Newton UI 近零導數失敗");
+ value("x0","1.5");value("maxIterations","1");submit();check(read(d.querySelector(".calculator-warning")).includes("尚未收斂"),"Newton UI 不足迭代失敗");
+ value("maxIterations","50");
+ for(const name of ["x0","tolerance"]){value(name,"");submit();check(Boolean(d.querySelector(".calculator-status.error")),"Newton UI 空值 "+name);value(name,name==="x0"?"1.5":"0.0001");}
+ value("tolerance","0");submit();check(Boolean(d.querySelector(".calculator-status.error")),"Newton UI 零誤差失敗");
+ value("tolerance","0.0001");value("x0","1e308");submit();check(read(d.querySelector(".calculator-warning")).includes("有限"),"Newton UI 數值失敗");
+ value("x0","1.5");submit();
+ frame.style.width="390px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=390,"Newton 手機版無橫向溢出");
+ frame.style.width="1280px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=1280,"Newton 桌面版無橫向溢出");
+ check(read(d.querySelector("pre code"))===newtonPack.matlab_code,"Newton MATLAB 換行縮排");
+ for(const key of ["summary","concept","prerequisites","formulas","symbols","conditions","steps","example","matlab_explanation","advantages","limitations","common_mistakes","sources"]){
+  check(collect(newtonPack[key]).every(t=>read(d.querySelector("#note-detail")).includes(t)),"Newton 全文呈現 "+key);
+ }
+ const newtonEntry=manifest.packs.find(item=>item.id==="newton-raphson");
+ w.renderPack({...newtonPack,calculator_id:null},newtonEntry);check(!d.querySelector(".calculator-form"),"Newton null ID 不顯示計算器");
+ frame.style.width="390px";
+
+
+ runPackExampleTests().forEach(title=>lines.push("PASS "+title));
+ const fullManifest=await(await fetch("../data/manifest.json")).json();
+ const input=d.querySelector("#search");
+ input.value="";input.dispatchEvent(new w.Event("input"));
+ w.location.hash="#home";await wait(()=>!d.querySelector("#notes").closest("section").hidden);
+ check(d.querySelectorAll(".note-list a").length===8,"首頁八份筆記");
+ for(const category of fullManifest.categories){
+  w.location.hash="#category/"+category.id;await sleep(100);
+  check(d.querySelectorAll(".note-list a").length===fullManifest.packs.filter(p=>p.category===category.id).length,"分類筆記數 "+category.id);
+ }
+ const newIds=["false-position","gaussian-elimination","gauss-jordan","gauss-seidel"];
+ for(const item of fullManifest.packs){
+  const p=await(await fetch("../"+item.path.slice(2))).json();
+  w.validatePack(p,item);
+  for(const query of [item.title_zh,item.title_en]){
+   w.location.hash="#home";await sleep(75);
+   input.value=query;input.dispatchEvent(new w.Event("input"));
+   const anchor=[...d.querySelectorAll(".note-list a")].find(a=>a.getAttribute("href")==="#note/"+item.id);
+   check(Boolean(anchor),"六份中英文搜尋 "+item.id+" "+query);
+   anchor.click();await wait(()=>!d.querySelector("#note-detail").hidden&&read(d.querySelector("pre code"))===p.matlab_code&&d.querySelector("#note-detail").getAttribute("aria-busy")==="false");
+  }
+  check(read(d.querySelector("#detail-title")).includes(item.title_zh),"詳細頁標題 "+item.id);
+  for(const key of ["summary","concept","prerequisites","formulas","symbols","conditions","steps","example","matlab_explanation","advantages","limitations","common_mistakes","sources"]){
+   check(collect(p[key]).every(t=>read(d.querySelector("#note-detail")).includes(t)),"六份非空欄位 "+item.id+" "+key);
+  }
+  check(read(d.querySelector("pre code"))===p.matlab_code,"六份 MATLAB 逐字保留 "+item.id);
+  if(newIds.includes(item.id)){
+   check(p.status==="draft"&&p.calculator_id===p.id,"新筆記 draft/對應計算器 "+item.id);
+   check(Boolean(d.querySelector(".calculator-form")),"新筆記實際計算器 "+item.id);
+   frame.style.width="390px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=390,"新筆記手機無整頁橫向溢出 "+item.id);
+  }else{
+   submit();check(Boolean(d.querySelector(".calculator-success")),"既有計算器仍可執行 "+item.id);
+  }
+ }
+ input.value="";input.dispatchEvent(new w.Event("input"));
+
+
+ runExtendedCalculatorTests(MathCalculators).forEach(t=>lines.push("PASS "+t));
+ const openNote=async(id)=>{
+  w.location.hash="#note/"+id;
+  await wait(()=>!d.querySelector("#note-detail").hidden&&d.querySelector("#note-detail").getAttribute("aria-busy")==="false"&&read(d.querySelector("#detail-title")).includes(fullManifest.packs.find(p=>p.id===id).title_en)&&d.querySelector(".calculator-form"));
+ };
+ await openNote("false-position");
+ submit();check(d.querySelector(".calculator-success")&&d.querySelectorAll(".iteration-table tbody tr").length===6,"假位 UI 迭代表與結果");
+ value("xl","2");value("xu","3");submit();check(read(d.querySelector(".calculator-status.error")).includes("同號"),"假位 UI 無效區間");
+ value("xl","1");value("xu","2");value("maxIterations","1");submit();check(Boolean(d.querySelector(".calculator-warning")),"假位 UI 不足迭代");
+ const setMatrix=(A,b)=>{
+  const size=d.querySelector("#matrix-size");size.value=String(A.length);size.dispatchEvent(new w.Event("change",{bubbles:true}));
+  A.forEach((row,i)=>row.forEach((v,j)=>{const input=d.querySelector("#matrix-a-"+i+"-"+j);input.value=String(v);input.dispatchEvent(new w.Event("input",{bubbles:true}));}));
+  b.forEach((v,i)=>{const input=d.querySelector("#matrix-b-"+i);input.value=String(v);input.dispatchEvent(new w.Event("input",{bubbles:true}));});
+ };
+ const answer=()=>[...d.querySelectorAll(".calculator-summary dt")].flatMap(dt=>/^x\d+$/.test(read(dt))?[Number(read(dt.nextElementSibling))]:[]);
+ for(const id of ["gaussian-elimination","gauss-jordan","gauss-seidel"]){
+  await openNote(id);
+  setMatrix([[4,1],[1,3]],[9,7]);submit();
+  check(Boolean(d.querySelector(".calculator-success")),"矩陣 2x2 UI 成功 "+id);
+  check(answer().length===2&&Math.abs(answer()[0]-20/11)<1e-4&&Math.abs(answer()[1]-19/11)<1e-4,"矩陣 UI 指定解 "+id);
+  check(read(d.querySelector(".calculator-output")).includes("殘差"),"矩陣 UI 殘差 "+id);
+  if(id==="gaussian-elimination")check(read(d.querySelector(".calculator-output")).includes("向後代入"),"高斯 UI 回代");
+  if(id!=="gauss-seidel")check(d.querySelectorAll(".matrix-steps .matrix-display").length>1,"直接法 UI 矩陣過程 "+id);
+  setMatrix(id==="gauss-seidel"?[[4,1,0],[1,4,1],[0,1,3]]:[[0,2,1],[2,1,1],[1,1,3]],id==="gauss-seidel"?[6,12,11]:[7,7,12]);submit();
+  check(answer().length===3&&answer().every((v,i)=>Math.abs(v-i-1)<1e-4),"矩陣 3x3 UI "+id);
+  check(d.querySelectorAll(".matrix-grid input").length===12,"矩陣尺寸重建 "+id);
+  frame.style.width="390px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=390,"矩陣手機無整頁溢出 "+id);
+  check([...d.querySelectorAll(".matrix-grid input")].every(i=>i.getBoundingClientRect().height>=44),"矩陣手機觸控高度 "+id);
+  const bad=d.querySelector("#matrix-a-0-0");bad.value="";bad.dispatchEvent(new w.Event("input",{bubbles:true}));submit();check(Boolean(d.querySelector(".calculator-status.error")),"矩陣 UI 留白錯誤 "+id);
+  if(id==="gauss-seidel"){
+   setMatrix([[0,1],[1,3]],[1,2]);submit();check(read(d.querySelector(".calculator-status.error")).includes("對角"),"賽德 UI 零對角");
+   setMatrix([[1,2],[2,5]],[3,7]);const limit=d.querySelector("#matrix-maxIterations");limit.value="1000";submit();
+   check(d.querySelector(".calculator-success")&&read(d.querySelector(".convergence-hint")).includes("仍可能收斂"),"賽德 UI 非對角優勢提示");
+   setMatrix([[1,2],[2,1]],[3,3]);submit();check(read(d.querySelector(".calculator-warning")).includes("疑似發散"),"賽德 UI 發散");
+  }else{
+   setMatrix([[1,2],[2,4]],[3,6]);submit();check(d.querySelector(".calculator-warning")&&!d.querySelector(".calculator-summary"),"直接法 UI 無假唯一解 "+id);
+  }
+ }
+ frame.style.width="1280px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=1280,"矩陣桌面無整頁溢出");
+
+
+ runTransformTests(MathCalculators).forEach(t=>lines.push("PASS "+t));
+ const transformValue=(name,v)=>{
+  const input=d.querySelector("#transform-"+name);input.value=String(v);
+  input.dispatchEvent(new w.Event(name==="functionId"?"change":"input",{bubbles:true}));
+ };
+ const transformResult=title=>{const dt=[...d.querySelectorAll(".transform-output dt")].find(dt=>read(dt)===title);return dt?read(dt.nextElementSibling):undefined;};
+ await openNote("laplace-transform");
+ check(d.querySelector("#transform-functionId").options.length===4,"Laplace UI four fixed functions");
+ submit();check(d.querySelector(".calculator-success")&&Math.abs(Number(transformResult("F(s) 實部"))-.3)<1e-12&&Math.abs(Number(transformResult("F(s) 虛部"))+.1)<1e-12,"Laplace UI complex example");
+ transformValue("omega",0);submit();check(Math.abs(Number(transformResult("F(s) 實部"))-1/3)<1e-12,"Laplace UI real example");
+ transformValue("sigma",-3);submit();
+ check(read(d.querySelector(".calculator-warning")).includes("積分不收斂")&&transformResult("F(s) 實部")===undefined,"Laplace UI ROC hides numeric value");
+ transformValue("functionId","sine");transformValue("sigma",1);transformValue("b",2);submit();
+ check(Math.abs(Number(transformResult("F(s) 實部"))-.4)<1e-12,"Laplace UI sine .4");
+ check(d.querySelector("#transform-a").disabled&&!d.querySelector("#transform-b").disabled,"Laplace UI conditional parameters");
+ transformValue("b",0);submit();check(Boolean(d.querySelector(".calculator-status.error")),"Laplace UI invalid b");
+ transformValue("functionId","constant");submit();check(Boolean(d.querySelector(".calculator-success")),"Laplace UI ignores inactive parameters");
+ frame.style.width="390px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=390,"Laplace mobile width");
+ await openNote("fourier-transform");
+ check(d.querySelector("#transform-functionId").options.length===3,"Fourier UI three fixed functions");
+ submit();check(Number(transformResult("F(ω)"))===2,"Fourier UI exponential omega0");
+ transformValue("omega",1);submit();check(Number(transformResult("F(ω)"))===1,"Fourier UI exponential omega1");
+ transformValue("functionId","gaussian");transformValue("omega",0);submit();check(Math.abs(Number(transformResult("F(ω)"))-Math.sqrt(Math.PI))<1e-12,"Fourier UI Gaussian");
+ transformValue("functionId","rectangle");transformValue("A",2);transformValue("T",3);submit();
+ check(Number(transformResult("F(ω)"))===6&&Number(transformResult("幅度 |F(ω)|"))===6,"Fourier UI rectangle zero frequency");
+ check(d.querySelector("#transform-a").disabled&&!d.querySelector("#transform-T").disabled,"Fourier UI conditional parameters");
+ transformValue("T",0);submit();check(Boolean(d.querySelector(".calculator-status.error")),"Fourier UI invalid T");
+ transformValue("T",3);transformValue("A","");submit();check(Boolean(d.querySelector(".calculator-status.error")),"Fourier UI blank amplitude");
+ transformValue("A",2);submit();
+ check(read(d.querySelector("#transform-help")).includes("rad/s")&&read(d.querySelector("#transform-help")).includes("Hz"),"Fourier UI angular vs ordinary frequency");
+ check(d.documentElement.scrollWidth<=390,"Fourier mobile width");
+ frame.style.width="1280px";await d.fonts.ready;await sleep(50);check(d.documentElement.scrollWidth<=1280,"Transforms desktop width");
+ for(const category of fullManifest.categories){
+  const nav=d.querySelector('nav a[data-route="'+category.id+'"]');check(Boolean(nav),"Sidebar category link "+category.id);
+ }
+
+
+ check(w.MathDisplay.available(),"本地 KaTeX 與 CSS 載入");
+ for(const item of fullManifest.packs){
+  await openNote(item.id);w.MathDisplay.renderTree(d.querySelector("#note-detail"));
+  const p=await(await fetch("../"+item.path.slice(2))).json();
+  const scan=value=>{
+   if(typeof value==="string"){
+    for(const m of value.matchAll(/\\\(([\s\S]*?)\\\)|\\\[([\s\S]*?)\\\]/g)){
+     w.katex.renderToString(m[1]??m[2],{throwOnError:true,trust:false,strict:"error"});
+    }
+   }else if(Array.isArray(value))value.forEach(scan);
+   else if(value&&typeof value==="object")Object.entries(value).forEach(([k,v])=>{if(!["matlab_code","sources"].includes(k))scan(v);});
+  };
+  scan(p);
+  check(d.querySelectorAll("#note-detail .katex").length>10,"筆記實際 KaTeX 渲染 "+item.id);
+  check(!d.querySelector("#note-detail .math-error"),"所有公式語法正常 "+item.id);
+  check(!d.querySelector("pre code .katex")&&d.querySelector("pre code").textContent===p.matlab_code,"MATLAB 未渲染且原文保留 "+item.id);
+  if(item.id==="newton-raphson")check(d.querySelector(".formula-list .mfrac"),"牛頓公式分數");
+  if(item.id==="gaussian-elimination")check([...d.querySelectorAll(".katex annotation")].some(a=>a.textContent.includes("array")||a.textContent.includes("bmatrix")),"高斯矩陣渲染");
+  if(["laplace-transform","fourier-transform"].includes(item.id))check([...d.querySelectorAll(".formula-list annotation")].some(a=>a.textContent.includes("\\int")),"轉換積分渲染 "+item.id);
+  submit();w.MathDisplay.renderTree(d.querySelector("#note-detail"));
+  check(Boolean(d.querySelector(".calculator-success")),"LaTeX 顯示下數值計算正常 "+item.id);
+  check(d.querySelector(".calculator .katex")&&!d.querySelector(".calculator .math-error"),"計算器輸入與結果排版 "+item.id);
+  if(["gaussian-elimination","gauss-jordan"].includes(item.id))check(d.querySelector(".matrix-steps .katex"),"計算器矩陣 KaTeX "+item.id);
+  frame.style.width="390px";await d.fonts.ready;await sleep(50);
+  check(d.documentElement.scrollWidth<=390,"LaTeX 手機寬度 "+item.id);
+ }
+ const long=w.MathDisplay.mathNode("x="+Array(80).fill("\\frac{1}{n^2}").join("+"),true,"長公式");
+ d.querySelector("#note-detail").append(long);w.MathDisplay.renderTree(d.querySelector("#note-detail"));
+ check(long.scrollWidth>long.clientWidth&&d.documentElement.scrollWidth<=390,"長獨立公式局部水平捲動");
+ long.remove();
+ const examples=[
+  "\\begin{vmatrix}1&2\\\\3&4\\end{vmatrix}=-2",
+  "\\lim_{x\\to0}\\frac{\\sin x}{x}=1",
+  "\\sqrt{x_1^2+x_2^2}",
+  "\\begin{cases}x+y=1\\\\x-y=0\\end{cases}"
+ ];
+ for(const tex of examples){const node=w.MathDisplay.mathNode(tex,true,tex);check(node.dataset.mathState==="rendered","支援進階 LaTeX "+tex);}
+ check(w.MathNotation.latex("-t^2").startsWith("-")&&!w.MathNotation.latex("-t^2").startsWith("{-"),"負號與平方優先序");
+ check(w.MathNotation.latex("e^(-at^2)").includes("-a")&&w.MathNotation.latex("e^(-at^2)").includes("{t}^{2}"),"a*t^2 乘法優先序");
+ const injected=w.MathDisplay.mathNode("\\href{javascript:alert(1)}{x}",false,"不可信公式");
+ d.querySelector("#note-detail").append(injected);
+ check(!injected.querySelector("a[href^='javascript:']")&&!injected.querySelector("script"),"不信任 LaTeX 連結");
+ injected.remove();
+ const savedKatex=w.katex;w.katex=undefined;
+ await openNote("bisection");w.MathDisplay.renderTree(d.querySelector("#note-detail"));
+ check(!d.querySelector("#math-status").hidden&&Boolean(d.querySelector(".math-fallback")),"模擬 KaTeX 缺載時顯示原式與提示");
+ submit();check(Boolean(d.querySelector(".calculator-success")),"KaTeX 缺載時計算器仍可用");
+ w.katex=savedKatex;w.MathDisplay.renderTree(d.querySelector("#note-detail"));
+ check(d.querySelector("#math-status").hidden&&Boolean(d.querySelector(".katex")),"KaTeX 恢復後可重新渲染");
+ frame.style.width="1280px";
+
+ report.textContent=lines.join("\n")+"\nALL TESTS PASSED";
+ }catch(error){report.textContent=lines.join("\n")+"\nFAIL "+error.message;document.title="FAIL";}
+})();
+</script>
+</body></html>

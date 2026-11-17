@@ -1,0 +1,131 @@
+{
+    "id":  "false-position",
+    "category":  "root-finding",
+    "type":  "algorithm",
+    "title_zh":  "假位法",
+    "title_en":  "False Position Method",
+    "summary":  "用包根區間兩端的函數值作線性插值，以割線與 \\(x\\) 軸的交點更新近似根，同時保留異號包根條件。",
+    "prerequisites":  [
+                          "連續函數與介值定理",
+                          "兩點直線及線性插值",
+                          "函數殘差、區間與迭代"
+                      ],
+    "concept":  "二分法取區間中點，假位法則連接 \\(\\left(x_l , f\\left(x_l\\right)\\right)\\) 與 \\(\\left(x_u , f\\left(x_u\\right)\\right)\\)，以這條割線的零點作為 xr。與開放式割線法不同，假位法每次保留端點異號的子區間。若一個端點長期不更新，收斂可能緩慢；包根區間的寬度不一定趨近零。",
+    "formulas":  [
+                     "割線插值：\\[x_r=x_l-\\frac{f(x_l)(x_u-x_l)}{f(x_u)-f(x_l)}.\\]",
+                     "等價形式：\\[x_r=\\frac{x_lf(x_u)-x_uf(x_l)}{f(x_u)-f(x_l)}.\\]",
+                     "非零端點的包根條件：\\[f(x_l)f(x_u)\u003c0\\]先處理端點恰為根的情況。",
+                     "若 \\(f(x_l)f(x_r)\u003c0\\)，令 \\(x_u=x_r\\)；否則在 \\(f(x_r)\\ne0\\) 時令 \\(x_l=x_r\\)。",
+                     "本例成功條件：\\[\\lvert f(x_r)\\rvert\\le\\mathrm{tolerance}\\]此為函數殘差，不是根的位置誤差或相對近似誤差。",
+                     "達最大次數、非有限數值、插值分母過小或浮點停滯時停止並回報失敗；不可把單純步長很小當作成功。"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "xl, xu",
+                        "meaning":  "當次更新前的左、右端點，\\(x_l \u003c x_u\\)。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(f\\left(x\\right) , f(x_l) , f(x_u) , f(x_r)\\)",
+                        "meaning":  "函數及 \\(f\\left(x_l\\right)\\)、\\(f\\left(x_u\\right)\\)、\\(f\\left(x_r\\right)\\) 的程式快取值。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "xr",
+                        "meaning":  "插值近似根。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "tolerance",
+                        "meaning":  "函數殘差的有限正容許值。",
+                        "unit":  "與 \\(f\\) 的輸出相同"
+                    },
+                    {
+                        "symbol":  "k, maxIterations",
+                        "meaning":  "迭代編號與最大迭代次數。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "denominator, eps(s)",
+                        "meaning":  "插值分母，以及 MATLAB 尺度 \\(s\\) 附近的浮點間距，用於數值保護。",
+                        "unit":  "本例無單位"
+                    }
+                ],
+    "conditions":  [
+                       "\\(f\\) 在整個初始閉區間必須連續，端點有限且 \\(x_l \u003c x_u\\)；有限取樣不能證明連續。",
+                       "先檢查端點根；非零端點須異號。同號只表示此包根條件不成立，不能推論沒有根。",
+                       "插值分母必須可用且數值計算有限；MATLAB 程式對極端尺度會回報錯誤而不宣稱成功。",
+                       "每次保留異號子區間；不要求導數，但不能保證比二分法快。",
+                       "端點停滯會使區間半寬不適合作為當前 xr 的二分法式誤差界；本例明確採殘差停止。"
+                   ],
+    "steps":  [
+                  "設定 \\(f\\)、xl、xu、tolerance 與 maxIterations，分析連續性。",
+                  "驗證輸入、端點函數值與端點根，確認異號包根。",
+                  "計算插值分母與 xr，檢查有限值，再計算 fr。",
+                  "記錄更新前 xl、xu、xr、fr；若 \\(\\left|f(x_r)\\right| \\le \\mathrm{tolerance}\\) 則成功停止。",
+                  "殘差未達標時，若 xr 等於端點或離開區間，回報浮點停滯／計算失敗。",
+                  "依 \\(f\\left(x_l\\right)\\) 與 fr 的符號保留異號區間，並同步更新函數快取。",
+                  "重複直到成功；到上限仍未達標時回報尚未收斂，不推論根不存在。"
+              ],
+    "example":  {
+                    "problem":  "自編例題：以假位法求 \\(f\\left(x\\right) = {x}^{2} - 2\\) 在 \\(\\left[1,2\\right]\\) 的正根，逐次計算至殘差達標。",
+                    "given":  [
+                                  "\\(x_l = 1\\)，\\(x_u = 2\\)，\\(f\\left(x_l\\right) = -1\\)，\\(f\\left(x_u\\right) = 2\\)；多項式連續。",
+                                  "\\(\\mathrm{tolerance} = 1\\times10^{-4}\\)，\\(\\mathrm{maxIterations} = 100\\)；以未捨入值繼續計算。",
+                                  "第 \\(1\\) 次插值 \\(x_r = 1 - \\frac{\\left(-1\\right) \\, \\left(2 - 1\\right)}{\\left(2 - \\left(-1\\right)\\right)} = \\frac{4}{3}\\)。"
+                              ],
+                    "solution_steps":  [
+                                           "第 \\(1\\) 次：\\(x_l = 1\\)，\\(x_u = 2\\)，\\(f(x_l) = -1\\)，\\(f(x_u) = 2\\)；代入 \\(x_r = x_l - \\frac{f(x_l) \\, \\left(x_u - x_l\\right)}{\\left(f(x_u) - f(x_l)\\right)}\\)，得 \\(x_r \\approx 1.3333333333333333\\)，\\(f\\left(x_r\\right) \\approx -0.22222222222222232\\)。fr 與 fl 同為負，令 \\(x_l = x_r\\)，xu 保持 \\(2\\)。",
+                                           "第 \\(2\\) 次：\\(x_l = 1.3333333333333333\\)，\\(x_u = 2\\)，\\(f(x_l) = -0.22222222222222232\\)，\\(f(x_u) = 2\\)；代入 \\(x_r = x_l - \\frac{f(x_l) \\, \\left(x_u - x_l\\right)}{\\left(f(x_u) - f(x_l)\\right)}\\)，得 \\(x_r \\approx 1.4\\)，\\(f\\left(x_r\\right) \\approx -0.04000000000000026\\)。fr 與 fl 同為負，令 \\(x_l = x_r\\)，xu 保持 \\(2\\)。",
+                                           "第 \\(3\\) 次：\\(x_l = 1.4\\)，\\(x_u = 2\\)，\\(f(x_l) = -0.04000000000000026\\)，\\(f(x_u) = 2\\)；代入 \\(x_r = x_l - \\frac{f(x_l) \\, \\left(x_u - x_l\\right)}{\\left(f(x_u) - f(x_l)\\right)}\\)，得 \\(x_r \\approx 1.411764705882353\\)，\\(f\\left(x_r\\right) \\approx -0.006920415224913157\\)。fr 與 fl 同為負，令 \\(x_l = x_r\\)，xu 保持 \\(2\\)。",
+                                           "第 \\(4\\) 次：\\(x_l = 1.411764705882353\\)，\\(x_u = 2\\)，\\(f(x_l) = -0.006920415224913157\\)，\\(f(x_u) = 2\\)；代入 \\(x_r = x_l - \\frac{f(x_l) \\, \\left(x_u - x_l\\right)}{\\left(f(x_u) - f(x_l)\\right)}\\)，得 \\(x_r \\approx 1.4137931034482758\\)，\\(f\\left(x_r\\right) \\approx -0.0011890606420930094\\)。fr 與 fl 同為負，令 \\(x_l = x_r\\)，xu 保持 \\(2\\)。",
+                                           "第 \\(5\\) 次：\\(x_l = 1.4137931034482758\\)，\\(x_u = 2\\)，\\(f(x_l) = -0.0011890606420930094\\)，\\(f(x_u) = 2\\)；代入 \\(x_r = x_l - \\frac{f(x_l) \\, \\left(x_u - x_l\\right)}{\\left(f(x_u) - f(x_l)\\right)}\\)，得 \\(x_r \\approx 1.4141414141414141\\)，\\(f\\left(x_r\\right) \\approx -0.0002040608101214758\\)。fr 與 fl 同為負，令 \\(x_l = x_r\\)，xu 保持 \\(2\\)。",
+                                           "第 \\(6\\) 次：\\(x_l = 1.4141414141414141\\)，\\(x_u = 2\\)，\\(f(x_l) = -0.0002040608101214758\\)，\\(f(x_u) = 2\\)；代入 \\(x_r = x_l - \\frac{f(x_l) \\, \\left(x_u - x_l\\right)}{\\left(f(x_u) - f(x_l)\\right)}\\)，得 \\(x_r \\approx 1.4142011834319528\\)，\\(f\\left(x_r\\right) \\approx -0.000035012779664223004\\)。殘差 \\(\\le\\,1\\times10^{-4}\\)，成功停止，不再更新。",
+                                           "可用精確分數核對各次 xr：\\(\\frac{4}{3}\\)、\\(\\frac{7}{5}\\)、\\(\\frac{24}{17}\\)、\\(\\frac{41}{29}\\)、\\(\\frac{140}{99}\\)、\\(\\frac{239}{169}\\)。每次平方再減 \\(2\\)，可獨立核對函數殘差。",
+                                           "第六次時 xu 仍為 \\(2\\)，說明即使近似根已良好，區間也未必像二分法逐次折半。"
+                                       ],
+                    "answer":  "第 \\(6\\) 次 \\(x_r = \\frac{239}{169} \\approx 1.4142011834319528\\)，\\(f\\left(x_r\\right) = \\frac{-1}{28561} \\approx -0.0000350127796644\\)，殘差小於 \\(1\\times10^{-4}\\)。這不代表已達任意位置精度。"
+                },
+    "matlab_code":  "% 自編假位法：以函數殘差停止，不使用區間半寬當誤差界\nf = @(x) x.^2 - 2; % 定義連續函數\nxl = 1; xu = 2; % 初始包根區間\ntolerance = 1e-4; % 函數殘差容許值\nmaxIterations = 100; % 有限的迭代上限\nvalidateattributes(xl, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\nvalidateattributes(xu, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027\u003e\u0027,xl});\nvalidateattributes(tolerance, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\nvalidateattributes(maxIterations, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027integer\u0027,\u0027\u003e=\u0027,1,\u0027\u003c=\u0027,10000});\nfl = f(xl); fu = f(xu); % 端點函數值\nif ~isreal(fl) || ~isreal(fu) || ~isfinite(fl) || ~isfinite(fu)\n    error(\u0027FalsePosition:NonFinite\u0027, \u0027端點函數值必須是有限實數。\u0027);\nend\nhistory = zeros(0,5); % 欄位：k、xl、xu、xr、f(xr)\nconverged = false; % 成功旗標\nif fl == 0\n    xr = xl; fr = fl; converged = true; % 左端點根\nelseif fu == 0\n    xr = xu; fr = fu; converged = true; % 右端點根\nelseif sign(fl) == sign(fu)\n    error(\u0027FalsePosition:Bracket\u0027, \u0027端點非零且同號，包根條件不成立。\u0027);\nend\nfor k = 1:maxIterations\n    if converged, break; end % 端點已為根時不做插值\n    denominator = fu-fl; % 插值分母\n    if ~isfinite(denominator) || abs(denominator) \u003c= eps(max(abs([fl,fu])))\n        error(\u0027FalsePosition:Denominator\u0027, \u0027插值分母無效或太小。\u0027);\n    end\n    xr = xl-fl*(xu-xl)/denominator; % 割線與 x 軸交點\n    if ~isfinite(xr)\n        error(\u0027FalsePosition:NonFinite\u0027, \u0027插值點非有限值。\u0027);\n    end\n    fr = f(xr); % 新近似值的函數殘差\n    if ~isreal(fr) || ~isfinite(fr)\n        error(\u0027FalsePosition:NonFinite\u0027, \u0027插值點函數值非有限實數。\u0027);\n    end\n    history(end+1,:) = [k,xl,xu,xr,fr]; % 保留更新前狀態\n    fprintf(\u0027%d: xl=%.12g, xu=%.12g, xr=%.12g, f=%.12e\\n\u0027,k,xl,xu,xr,fr);\n    if abs(fr) \u003c= tolerance\n        converged = true; break; % 殘差達標才回報成功\n    end\n    if xr \u003c= xl || xr \u003e= xu\n        error(\u0027FalsePosition:Precision\u0027, \u0027浮點停滯或插值點離開區間，殘差尚未達標。\u0027);\n    end\n    if sign(fl) ~= sign(fr)\n        xu = xr; fu = fr; % 保留左側異號子區間\n        fprintf(\u0027保留 [xl,xr]，更新 xu。\\n\u0027);\n    else\n        xl = xr; fl = fr; % 保留右側異號子區間\n        fprintf(\u0027保留 [xr,xu]，更新 xl。\\n\u0027);\n    end\nend\nif ~converged\n    error(\u0027FalsePosition:MaxIterations\u0027, \u0027已達迭代上限，尚未收斂至指定條件。\u0027);\nend\nfprintf(\u0027近似根 %.12g，殘差 %.12e，迭代 %d 次\\n\u0027,xr,fr,size(history,1));\n",
+    "matlab_explanation":  [
+                               "\\(f\\)、xl、xu 與容許誤差對應自編例題；validateattributes 拒絕無效參數。",
+                               "history 每列保存更新前狀態；sign 比較避免直接相乘造成溢位。",
+                               "denominator 及 eps 尺度檢查是實作保護，不是數學上的新停止定理。",
+                               "先檢查端點根與殘差，再檢查浮點停滯；未達標不可當成成功。",
+                               "maxIterations 保證有限次迴圈；改函數後須重新確認連續性、區間與函數尺度。"
+                           ],
+    "advantages":  [
+                       "不需要導數，並利用端點函數值改善插值估計。",
+                       "在連續與異號條件下維持包根區間，便於追蹤。"
+                   ],
+    "limitations":  [
+                        "一端可能長期不更新，收斂很慢；不能保證比二分法快。",
+                        "殘差小不直接等於位置誤差小，尤其函數尺度改變時。",
+                        "插值與函數計算仍受浮點精度及溢位限制。"
+                    ],
+    "common_mistakes":  [
+                            "把假位法當成每次保留最近兩點的割線法，破壞異號包根。",
+                            "忘記連續性前提，將跨奇點的異號區間誤認為有根。",
+                            "插值公式分子或分母寫錯號，或更新端點後未更新函數值。",
+                            "將區間半寬直接當成二分法式誤差界，忽略端點停滯。",
+                            "到達最大次數、分母太小或步長停滯後仍回報成功。"
+                        ],
+    "calculator_id":  "false-position",
+    "sources":  [
+                    {
+                        "title":  "Topic 10.2: False-Position Method",
+                        "author":  "University of Waterloo, Douglas Wilhelm Harder",
+                        "url":  "https://ece.uwaterloo.ca/~dwharder/NumericalAnalysis/10RootFinding/falseposition/complete.html",
+                        "sections":  "Theory、HOWTO、Halting Conditions",
+                        "note":  "已查閱插值與包根原理、端點停滯；來源使用步長與殘差聯合準則，本包自編範例明確採殘差準則。尚待全面查核。"
+                    },
+                    {
+                        "title":  "自編例題與 MATLAB 教學實作",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "本資料包 example、matlab_code",
+                        "note":  "例題及程式為專案自編，不是外部課本題目；容許誤差與保護門檻為本例設定。"
+                    }
+                ],
+    "status":  "draft"
+}

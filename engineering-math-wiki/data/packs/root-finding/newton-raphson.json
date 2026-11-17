@@ -1,0 +1,156 @@
+{
+    "id":  "newton-raphson",
+    "category":  "root-finding",
+    "type":  "algorithm",
+    "title_zh":  "牛頓法",
+    "title_en":  "Newton-Raphson Method",
+    "summary":  "從初始近似值出發，反覆使用切線與 \\(x\\) 軸的交點修正估計；合適條件下速度快，但不保證所有初始值收斂。",
+    "prerequisites":  [
+                          "函數零點與絕對值",
+                          "一階導數、切線與微分",
+                          "迭代、函數殘差與浮點數概念"
+                      ],
+    "concept":  "在目前位置 \\(x\\) 計算 \\(f\\left(x\\right)\\) 與切線斜率 f\u0027(x)。用切線代替附近曲線，再求切線的 \\(x\\) 軸交點作為 \\(x_{\\mathrm{next}}\\)。反覆更新可能靠近根；由於沒有保留異號區間，不能像二分法一樣保證根被包住。",
+    "formulas":  [
+                     "切線：\\[y=f(x)+f\u0027(x)(t-x)\\]令 \\(y=0\\) 並解出 \\(t\\)，得到牛頓更新。",
+                     "牛頓公式：\\[x_{\\mathrm{next}}=x-\\frac{f(x)}{f\u0027(x)}\\]前提是 \\(f\u0027(x)\\ne0\\)。",
+                     "帶編號表示：\\[x_{n+1}=x_n-\\frac{f(x_n)}{f\u0027(x_n)}\\]其中 \\(x_0\\) 為初始值。",
+                     "本包停止條件：\\[\\lvert f(x)\\rvert\\le\\mathrm{tolerance}\\]初始值與每次更新後皆檢查。這是函數殘差，不是相對近似誤差，也不直接給出位置誤差 \\(\\lvert x-r\\rvert\\) 的上界。",
+                     "導數保護條件：\\(\\lvert f\u0027(x)\\rvert\\le\\mathrm{derivativeEpsilon}\\) 時停止並回報失敗；本教材及計算器採 \\(\\mathrm{derivativeEpsilon}=10^{-12}\\)。這是工程保護門檻，函數尺度改變時須重新評估。",
+                     "本例 \\(f(x)=x^2-2\\)，\\(f\u0027(x)=2x\\)，因此 \\[x_{\\mathrm{next}}=x-\\frac{x^2-2}{2x}=\\frac{x+2/x}{2}\\]其中 \\(x\\ne0\\)。"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "\\(x , x_{n} , x_{0} , x_0\\)",
+                        "meaning":  "目前近似值、第 \\(n\\) 次近似值及初始值；程式使用 \\(x_0\\)。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(x_{\\mathrm{next}} , x_{n + 1} , t\\)",
+                        "meaning":  "下一次近似值及切線上的自變數。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "\\(f\\left(x\\right) , f(x) , f_{\\mathrm{next}}\\)",
+                        "meaning":  "函數及目前、下一次近似值的函數值；目標為零。",
+                        "unit":  "與函數輸出相同"
+                    },
+                    {
+                        "symbol":  "f\u0027(x), df, dfx",
+                        "meaning":  "一階導數、MATLAB 導數函數與導數數值。",
+                        "unit":  "函數輸出單位 \\(\\mathrm{/}\\,x\\) 的單位"
+                    },
+                    {
+                        "symbol":  "\\(y\\)",
+                        "meaning":  "切線的縱座標。",
+                        "unit":  "與函數輸出相同"
+                    },
+                    {
+                        "symbol":  "\\(r\\)",
+                        "meaning":  "真根；本例正根為 \\(\\sqrt{2}\\)。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "n, k, maxIterations",
+                        "meaning":  "近似值編號、更新次數與更新次數上限（\\(1\\)–\\(1000\\)）。",
+                        "unit":  "無"
+                    },
+                    {
+                        "symbol":  "tolerance",
+                        "meaning":  "有限正數，作為函數殘差的絕對容許值。",
+                        "unit":  "與函數輸出相同"
+                    },
+                    {
+                        "symbol":  "derivativeEpsilon",
+                        "meaning":  "導數絕對值過小的保護門檻，預設 \\(1\\times10^{-12}\\)。",
+                        "unit":  "與導數相同"
+                    }
+                ],
+    "conditions":  [
+                       "每次更新處須可微，\\(f\\) 與 f\u0027 必須能計算為有限實數；更新後也必須位於函數的定義域。",
+                       "導數不得為零或太接近零，否則除法可能失敗或造成很大的步長。",
+                       "常用的局部收斂條件為根附近 \\(f\\) 二階連續可微、\\(r\\) 為單根（f\u0027(r) 非零）、初始值足夠接近根；此時通常具有二次收斂。這不是任意初始值的保證。",
+                       "重根常只有線性收斂；若初始值不適當，可能振盪、離開定義域、趨向其他根或發散。",
+                       "容許誤差須為有限正數，最大更新次數須為 \\(1\\) 至 \\(1000\\) 的正整數。",
+                       "本例從 \\(1.5\\) 接近正根；負初始值可能收斂至負根。初始值 \\(0\\) 則因導數為零而失敗。"
+                   ],
+    "steps":  [
+                  "設定 \\(f\\)、正確的 f\u0027、\\(x_0\\)、tolerance、maxIterations 與導數門檻。",
+                  "驗證數值輸入，令 \\(x = x_0\\) 並計算 \\(f\\left(x\\right)\\)；若非有限值，停止並回報錯誤。",
+                  "先檢查 \\(\\left|f\\left(x\\right)\\right| \\le \\mathrm{tolerance}\\)；若初始值已達標，回報 \\(0\\) 次更新，避免不必要的除法。",
+                  "計算 f\u0027(x)，若非有限值或絕對值 \\(\\le\\,1\\times10^{-12}\\)，停止並回報導數／數值失敗。",
+                  "計算 \\(x_{\\mathrm{next}} = x - \\frac{f\\left(x\\right)}{f\u0027\\left(x\\right)}\\) 與 \\(f\\left(x_{\\mathrm{next}}\\right)\\)，檢查兩者為有限實數；成功更新才計入迭代紀錄。",
+                  "記錄更新前 \\(x\\)、\\(f\\left(x\\right)\\)、f\u0027(x) 及 \\(x_{\\mathrm{next}}\\)，令 \\(x = x_{\\mathrm{next}}\\)。",
+                  "檢查更新後殘差；達標則成功。未達標且 \\(x_{\\mathrm{next}}\\) 與更新前 \\(x\\) 完全相同時，回報浮點停滯。",
+                  "繼續迭代；到上限仍未達標時，明確回報尚未收斂至指定條件，不可宣稱已找到根，也不能據此推論沒有根。"
+              ],
+    "example":  {
+                    "problem":  "自編教學例題：以牛頓法求 \\({x}^{2} - 2 = 0\\) 的正根，\\(x_0 = 1.5\\)。採殘差停止條件，展示至提前達標。",
+                    "given":  [
+                                  "\\(f\\left(x\\right) = {x}^{2} - 2\\)，\\(f\u0027\\left(x\\right) = 2\\,x\\)，初始值 \\(x_0 = 1.5\\)。",
+                                  "\\(\\mathrm{tolerance} = 1\\times10^{-12}\\)，\\(\\mathrm{maxIterations} = 50\\)，\\(\\mathrm{derivativeEpsilon} = 1\\times10^{-12}\\)。",
+                                  "以下以雙精度數值展示，小數列印有捨入；每列以未捨入的數值繼續計算。"
+                              ],
+                    "solution_steps":  [
+                                           "第 \\(1\\) 次更新：\\(x = 1.5\\)，\\(f\\left(x\\right) = 0.25\\)，\\(f\u0027\\left(x\\right) = 3\\)；\\(x_{\\mathrm{next}} = 1.5 - \\frac{\\left(0.25\\right)}{\\left(3\\right)} \\approx 1.4166666666666667\\)。更新後 \\(f\\left(x_{\\mathrm{next}}\\right) \\approx 0.006944444444444642\\)，殘差 \\(\u003e\\,1\\times10^{-12}\\)，繼續。",
+                                           "第 \\(2\\) 次更新：\\(x = 1.4166666666666667\\)，\\(f\\left(x\\right) = 0.006944444444444642\\)，\\(f\u0027\\left(x\\right) = 2.8333333333333335\\)；\\(x_{\\mathrm{next}} = 1.4166666666666667 - \\frac{\\left(0.006944444444444642\\right)}{\\left(2.8333333333333335\\right)} \\approx 1.4142156862745099\\)。更新後 \\(f\\left(x_{\\mathrm{next}}\\right) \\approx 0.000006007304882871267\\)，殘差 \\(\u003e\\,1\\times10^{-12}\\)，繼續。",
+                                           "第 \\(3\\) 次更新：\\(x = 1.4142156862745099\\)，\\(f\\left(x\\right) = 0.000006007304882871267\\)，\\(f\u0027\\left(x\\right) = 2.8284313725490198\\)；\\(x_{\\mathrm{next}} = 1.4142156862745099 - \\frac{\\left(0.000006007304882871267\\right)}{\\left(2.8284313725490198\\right)} \\approx 1.4142135623746899\\)。更新後 \\(f\\left(x_{\\mathrm{next}}\\right) \\approx 4.510614104447086\\times10^{-12}\\)，殘差 \\(\u003e\\,1\\times10^{-12}\\)，繼續。",
+                                           "第 \\(4\\) 次更新：\\(x = 1.4142135623746899\\)，\\(f\\left(x\\right) = 4.510614104447086\\times10^{-12}\\)，\\(f\u0027\\left(x\\right) = 2.8284271247493797\\)；\\(x_{\\mathrm{next}} = 1.4142135623746899 - \\frac{\\left(4.510614104447086\\times10^{-12}\\right)}{\\left(2.8284271247493797\\right)} \\approx 1.4142135623730951\\)。更新後 \\(f\\left(x_{\\mathrm{next}}\\right) \\approx 4.440892098500626\\times10^{-16}\\)，殘差 \\(\\le\\,1\\times10^{-12}\\)，提前停止。",
+                                           "第 \\(4\\) 次更新已達到停止條件，因此不強迫做第 \\(5\\) 次。與 \\(\\sqrt{2}\\) 的比較只是本例的額外核對，不是一般未知根可用的停止準則。",
+                                           "若使用互動計算器的預設 \\(\\mathrm{tolerance} = 0.0001\\)，則第 \\(2\\) 次更新的殘差已達標，會更早停止；不能把兩種容許誤差下的迭代次數混為一談。"
+                                       ],
+                    "answer":  "依本例設定，第 \\(4\\) 次更新後 \\(x\\) 約 \\(1.4142135623730951\\)，\\(\\left|f\\left(x\\right)\\right|\\) 約 \\(4.440892098500626\\times10^{-16}\\)，小於 \\(1\\times10^{-12}\\)。此為殘差達標，不表示已證明任意位置精度；最後幾位可能因浮點捨入略異。"
+                },
+    "matlab_code":  "% 自編牛頓法例題；以函數殘差停止，並非位置誤差\nf = @(x) x.^2 - 2;\ndf = @(x) 2*x;\nx0 = 1.5;\ntolerance = 1e-12;\nmaxIterations = 50;\nderivativeEpsilon = 1e-12; % 本教材的絕對門檻，並非通用尺度\nvalidateattributes(x0, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\nvalidateattributes(tolerance, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\nvalidateattributes(maxIterations, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027integer\u0027,\u0027\u003e=\u0027,1,\u0027\u003c=\u0027,1000});\nx = x0;\nfx = f(x);\nif ~isreal(fx) || ~isfinite(fx)\n    error(\u0027Newton:NonFinite\u0027, \u0027初始函數值必須是有限實數。\u0027);\nend\nhistory = zeros(0,5); % 次數、更新前 x、f(x)、導數、x_next\nconverged = abs(fx) \u003c= tolerance; % 初始值達標時為 0 次更新\nfprintf(\u0027 k        x                 f(x)               df(x)              x_next\\n\u0027);\nfor k = 1:maxIterations\n    if converged\n        break;\n    end\n    dfx = df(x);\n    if ~isreal(dfx) || ~isfinite(dfx)\n        error(\u0027Newton:NonFinite\u0027, \u0027導數不是有限實數。\u0027);\n    end\n    if abs(dfx) \u003c= derivativeEpsilon\n        error(\u0027Newton:Derivative\u0027, \u0027導數為零或接近零，停止更新。\u0027);\n    end\n    x_next = x - fx/dfx;\n    if ~isreal(x_next) || ~isfinite(x_next)\n        error(\u0027Newton:NonFinite\u0027, \u0027下一次近似值不是有限實數。\u0027);\n    end\n    f_next = f(x_next);\n    if ~isreal(f_next) || ~isfinite(f_next)\n        error(\u0027Newton:NonFinite\u0027, \u0027下一次函數值不是有限實數。\u0027);\n    end\n    history(end+1,:) = [k,x,fx,dfx,x_next];\n    fprintf(\u0027%2d  %.16g  % .12e  %.16g  %.16g\\n\u0027, k,x,fx,dfx,x_next);\n    stalled = (x_next == x);\n    x = x_next;\n    fx = f_next;\n    converged = abs(fx) \u003c= tolerance;\n    if converged\n        break;\n    end\n    if stalled\n        error(\u0027Newton:Precision\u0027, \u0027浮點停滯，殘差尚未達標。\u0027);\n    end\nend\nif ~converged\n    error(\u0027Newton:MaxIterations\u0027, \u0027尚未收斂至指定條件，已達迭代上限。\u0027);\nend\nfprintf(\u0027近似根 = %.16g；f(x) = %.12e；更新次數 = %d\\n\u0027, x,fx,size(history,1));\n% 達到殘差條件不直接保證位置精度，也不表示任意初始值均能收斂\n",
+    "matlab_explanation":  [
+                               "此為專案自編 MATLAB 教學程式；瀏覽器互動計算另以 JavaScript 實作。",
+                               "\\(f\\) 與 df 成對設定，不能更換函數卻沿用錯誤導數。",
+                               "本例 \\(\\mathrm{tolerance} = 1\\times10^{-12}\\) 以展示四次更新；改成 \\(0.0001\\) 可核對網頁預設的兩次更新。",
+                               "先檢查殘差，再做導數除法；初始值已達標時 history 為空，更新次數為 \\(0\\)。",
+                               "history 的五欄為 \\(k\\)、\\(x\\)、\\(f\\left(x\\right)\\)、f\u0027(x)、\\(x_{\\mathrm{next}}\\)；表中使用更新前數值，最終 \\(f\\left(x\\right)\\) 另由更新後位置計算。",
+                               "程式以迭代上限及明確錯誤處理避免無限迴圈；未通過測試的環境不得宣稱已驗證。"
+                           ],
+    "advantages":  [
+                       "只需一個初始值，不必先找異號區間。",
+                       "在單根附近滿足條件時，通常收斂很快。"
+                   ],
+    "limitations":  [
+                        "需要正確導數，且對初始值敏感。",
+                        "沒有二分法的包根區間保證，可能振盪、發散或收斂到非預期根。",
+                        "導數過小會放大步長；重根及浮點精度可能降低效果。",
+                        "殘差停止準則受函數尺度影響，不能直接替代位置誤差。"
+                    ],
+    "common_mistakes":  [
+                            "將 \\(x_{\\mathrm{next}} = x + \\frac{f\\left(x\\right)}{f\u0027\\left(x\\right)}\\) 寫錯符號，或忘記更新 \\(x\\)。",
+                            "在導數為零或很小時仍繼續除法。",
+                            "只看步長很小便宣稱成功，卻沒有檢查殘差；浮點停滯也會使步長為零。",
+                            "認為任意初始值都會收斂，或迭代上限到達後仍顯示成功。",
+                            "將 tolerance 當成相對近似誤差百分比；本包使用的是函數值的絕對殘差。",
+                            "列印後的小數若重新代入，會產生額外捨入誤差；應保留內部完整精度。"
+                        ],
+    "calculator_id":  "newton-raphson",
+    "sources":  [
+                    {
+                        "title":  "DLMF §3.8(ii) Newton\u0027s Rule",
+                        "author":  "National Institute of Standards and Technology (NIST)",
+                        "url":  "https://dlmf.nist.gov/3.8.ii",
+                        "sections":  "式 3.8.4 與局部收斂討論",
+                        "note":  "已查閱更新公式、單根局部二次收斂與初始值限制；不代表整包已完成全面來源查核。"
+                    },
+                    {
+                        "title":  "Calculus Volume 1, 4.9 Newton\u0027s Method",
+                        "author":  "OpenStax",
+                        "url":  "https://openstax.org/books/calculus-volume-1/pages/4-9-newtons-method",
+                        "sections":  "Describing Newton\u0027s Method、失敗情況討論",
+                        "note":  "用於切線推導及方法限制背景，未引用課本頁碼。"
+                    },
+                    {
+                        "title":  "x^2-2 自編牛頓法例題及程式",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "本包 example、matlab_code 與網站計算器",
+                        "note":  "導數保護門檻與迭代上限為本專案實作選擇，非外部教材的通用標準。"
+                    }
+                ],
+    "status":  "draft"
+}

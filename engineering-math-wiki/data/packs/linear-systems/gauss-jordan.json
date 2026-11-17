@@ -1,0 +1,156 @@
+{
+    "id":  "gauss-jordan",
+    "category":  "linear-systems",
+    "type":  "algorithm",
+    "title_zh":  "高斯－喬登消去法",
+    "title_en":  "Gauss-Jordan Elimination",
+    "summary":  "用基本列運算將增廣矩陣化為簡化列階梯形；非奇異方陣可得到 \\(\\left[I\\,\\middle|\\,x\\right]\\)，直接讀出解。",
+    "prerequisites":  [
+                          "增廣矩陣與線性方程組",
+                          "三種基本列運算",
+                          "主元、階梯形與自由變數"
+                      ],
+    "concept":  "高斯消去法只消去主元下方；高斯－喬登法先將主元化為 \\(1\\)，再消去同欄其他所有列。簡化列階梯形要求每個非零列的首個非零元素是 \\(1\\)、該主元欄其他位置是 \\(0\\)、下方主元往右移，且零列在底部。只有非奇異方陣的係數區才能化成單位矩陣；一般 RREF 不一定是 \\(\\left[I\\,\\middle|\\,x\\right]\\)。",
+    "formulas":  [
+                     "換列：\\[R_i\\leftrightarrow R_j.\\]",
+                     "倍乘：\\[R_i\\leftarrow\\frac{1}{c}R_i,\\qquad c\\ne0\\]可選 \\(c\\) 為主元以化為 1。",
+                     "消去：\\[R_i\\leftarrow R_i-mR_k\\]主元已為 1 時，\\(m\\) 為當前第 \\(i\\) 列主元欄係數。",
+                     "非奇異方陣：\\[\\left[A\\mid b\\right]\\longrightarrow\\left[I\\mid x\\right]\\]直接讀出 \\(x\\)，不需向後代入。",
+                     "一般系統：若出現 \\(\\left[0\\ \\cdots\\ 0\\mid d\\right]\\) 且 \\(d\\ne0\\)，表示不相容；若沒有矛盾列且係數欄缺少主元，會有自由變數。",
+                     "核對：\\[\\mathrm{residual}=\\lVert A_{\\mathrm{original}}x-b_{\\mathrm{original}}\\rVert_\\infty.\\]"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "\\(A , a_{ij}\\)",
+                        "meaning":  "係數矩陣及第 \\(i\\) 列、第 \\(\\mathrm{j}\\) 欄元素。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(b , b_{i}\\)",
+                        "meaning":  "右側常數向量與第 \\(i\\) 個常數。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(x , x_{i} , x_{1} , x_{2} , x_{3}\\)",
+                        "meaning":  "未知解向量及其分量，例題分別以 \\(x_{1}\\)、\\(x_{2}\\)、\\(x_{3}\\) 表示。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(M = \\left[A\\,\\middle|\\,b\\right] , R_{i}\\)",
+                        "meaning":  "增廣矩陣與其中第 \\(i\\) 列；MATLAB 寫作 \\(\\left[A,b\\right]\\)。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "i, j, k, n",
+                        "meaning":  "列／欄編號、目前主元欄及方程組維度。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "pivot, p, pivotTol",
+                        "meaning":  "目前主元、選中的主元列與數值保護門檻。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(\\left\\lVert v\\right\\rVert_{\\infty} , \\mathrm{residual}\\)",
+                        "meaning":  "向量元素絕對值的最大值及原系統殘差。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "rcond(A)",
+                        "meaning":  "倒條件數估計，用於辨識數值近奇異；不是精確秩證明。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(I\\)",
+                        "meaning":  "單位矩陣，主對角為 \\(1\\)，其餘為 \\(0\\)。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "c, m, multiplier, d",
+                        "meaning":  "非零倍乘因子、消去倍數與矛盾列右側常數；\\(c\\)、\\(d\\) 的用途依公式說明。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "RREF",
+                        "meaning":  "簡化列階梯形（Reduced Row Echelon Form）。",
+                        "unit":  "本例無單位"
+                    }
+                ],
+    "conditions":  [
+                       "本教學程式只處理有限實數的非奇異 \\(n\\)×\\(n\\) 方陣與相容常數向量；不提供一般欠定或超定求解器。",
+                       "主元為零時先在下方尋找可用非零元素交換整列；部分選主元每次選目前欄剩餘元素中絕對值最大者。",
+                       "如果沒有安全主元，或 \\(\\mathrm{rcond}\\left(A\\right) \\le 1\\times10^{-12}\\)，程式拒絕唯一解計算。奇異系統可能無解或有無限多解，不能一律稱為無解。",
+                       "浮點小主元與近奇異可能放大誤差；部分選主元有助穩定，但不保證所有問題都高精度。",
+                       "範例以原方程組殘差核對；殘差小不保證病態問題的解向量誤差小。",
+                       "一般 RREF 演算法可處理長方形及秩不足矩陣；本 MATLAB 教學程式有意限於非奇異方陣，奇異時會報錯而非輸出錯誤唯一解。"
+                   ],
+    "steps":  [
+                  "驗證 \\(A\\)、\\(b\\)，保存原始資料並建立增廣矩陣。",
+                  "依欄選取剩餘列中絕對值最大的主元，必要時交換整列。",
+                  "確認主元安全後，將整個主元列除以主元，使主元為 \\(1\\)。",
+                  "對所有其他列，減去適當倍數的主元列，使該欄只剩主元 \\(1\\)。",
+                  "繼續處理下一主元欄，直至非奇異係數區成單位矩陣。",
+                  "由右側常數欄直接讀解並代回原題；若一般系統出現矛盾列或自由變數，須分別判讀，不能硬讀唯一解。"
+              ],
+    "example":  {
+                    "problem":  "自編例題：用高斯－喬登法將三元系統化為 \\(\\left[I\\,\\middle|\\,x\\right]\\)；與高斯消去法共用原題，對照兩種消去終點。",
+                    "given":  [
+                                  "\\(A = \\begin{bmatrix}0\u00262\u00261\\\\2\u00261\u00261\\\\1\u00261\u00263\\end{bmatrix}\\)，\\(b = \\begin{bmatrix}7\\\\7\\\\12\\end{bmatrix}\\)，各量無單位。",
+                                  "等價方程：\\[\\begin{cases}2x_2+x_3=7,\\\\2x_1+x_2+x_3=7,\\\\x_1+x_2+3x_3=12.\\end{cases}\\]",
+                                  "本例為直接法，不設迭代精度停止；以完成消去及原式殘差核對。數值保護採 \\(\\mathrm{rcond}\\left(A\\right) \u003e 1\\times10^{-12}\\) 與相對主元門檻。"
+                              ],
+                    "solution_steps":  [
+                                           "起始 \\(\\left[\\begin{array}{ccc|c}0\u00262\u00261\u00267\\\\2\u00261\u00261\u00267\\\\1\u00261\u00263\u002612\\end{array}\\right]\\)，第一欄選第 \\(2\\) 列的 \\(2\\) 作主元；交換 \\(R_{1}\\)、\\(R_{2}\\)。",
+                                           "\\(R_{1} \\leftarrow \\frac{R_{1}}{2}\\)，得 \\(R_{1} = \\left[\\frac{\\frac{1\\,1}{2}\\,1}{2}\\,\\middle|\\,\\frac{7}{2}\\right]\\)。\\(R_{2} = \\left[0\\,2\\,1\\,\\middle|\\,7\\right]\\) 不變；\\(R_{3} \\leftarrow R_{3} - R_{1}\\)，得 \\(\\left[\\frac{\\frac{0\\,1}{2}\\,5}{2}\\,\\middle|\\,\\frac{17}{2}\\right]\\)。",
+                                           "第二欄選第 \\(2\\) 列的 \\(2\\)，\\(R_{2} \\leftarrow \\frac{R_{2}}{2}\\)，得 \\(\\left[\\frac{0\\,1\\,1}{2}\\,\\middle|\\,\\frac{7}{2}\\right]\\)。",
+                                           "\\(R_{1} \\leftarrow R_{1} - \\left(\\frac{1}{2}\\right) \\, R_{2}\\)，得 \\(\\left[\\frac{1\\,0\\,1}{4}\\,\\middle|\\,\\frac{7}{4}\\right]\\)；\\(R_{3} \\leftarrow R_{3} - \\left(\\frac{1}{2}\\right) \\, R_{2}\\)，得 \\(\\left[\\frac{0\\,0\\,9}{4}\\,\\middle|\\,\\frac{27}{4}\\right]\\)。",
+                                           "第三欄主元為 \\(\\frac{9}{4}\\)，\\(R_{3} \\leftarrow \\frac{R_{3}}{\\left(\\frac{9}{4}\\right)}\\)，得 \\(\\left[0\\,0\\,1\\,\\middle|\\,3\\right]\\)。",
+                                           "\\(R_{1} \\leftarrow R_{1} - \\left(\\frac{1}{4}\\right) \\, R_{3}\\)，得 \\(\\left[1\\,0\\,0\\,\\middle|\\,1\\right]\\)；\\(R_{2} \\leftarrow R_{2} - \\left(\\frac{1}{2}\\right) \\, R_{3}\\)，得 \\(\\left[0\\,1\\,0\\,\\middle|\\,2\\right]\\)。",
+                                           "最終 \\(\\mathrm{RREF} = \\left[\\begin{array}{ccc|c}1\u00260\u00260\u00261\\\\0\u00261\u00260\u00262\\\\0\u00260\u00261\u00263\\end{array}\\right]\\)，係數區即 \\(I\\)。讀出 \\(x_{1} = 1\\)、\\(x_{2} = 2\\)、\\(x_{3} = 3\\)。",
+                                           "代回原式：\\(2 \\, 2 + 3 = 7\\)，\\(2 \\, 1 + 2 + 3 = 7\\)，\\(1 + 2 + 3 \\, 3 = 12\\)，原系統殘差為零。"
+                                       ],
+                    "answer":  "\\(x = \\begin{bmatrix}1\\\\2\\\\3\\end{bmatrix}\\)；本例沒有矛盾列或自由變數，解唯一。"
+                },
+    "matlab_code":  "% 自編高斯－喬登例題，將增廣矩陣化為 [I|x]\nA = [0 2 1; 2 1 1; 1 1 3]; % 同高斯消去法例題，便於比較\nb = [7;7;12]; % 右側常數\n% 檢查有限實數矩陣及向量\nvalidateattributes(A, {\u0027double\u0027}, {\u00272d\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027nonempty\u0027});\nvalidateattributes(b, {\u0027double\u0027}, {\u0027vector\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027nonempty\u0027});\nn = size(A,1); % 方程式數量\nif size(A,2) ~= n || numel(b) ~= n\n    error(\u0027Linear:Dimensions\u0027, \u0027本程式只接受 n×n 方陣及 n 個常數。\u0027);\nend\nb = b(:); % 統一轉為直向向量\nA0 = A; b0 = b; % 保留原題供殘差檢查\nmatrixScale = norm(A,inf); % 矩陣尺度\nif ~isfinite(matrixScale) || matrixScale == 0\n    error(\u0027Linear:Scale\u0027, \u0027矩陣尺度無效或為零。\u0027);\nend\nif rcond(A) \u003c= 1e-12\n    error(\u0027Linear:Singular\u0027, \u0027矩陣奇異或數值近奇異；本唯一解範例停止，不宣稱無解。\u0027);\nend\npivotTol = 1e-12*matrixScale; % 相對矩陣尺度的保護門檻，不是精確秩判定\n\nM = [A,b]; % 所有列運算包含右側常數\nstages = {M}; % 保存每個主元欄處理後的矩陣\nfor k = 1:n\n    [pivotMagnitude,offset] = max(abs(M(k:n,k))); % 部分選主元\n    p = k+offset-1; % 主元所在列\n    if pivotMagnitude \u003c= pivotTol\n        error(\u0027GaussJordan:Pivot\u0027, \u0027找不到安全主元，本唯一解範例停止。\u0027);\n    end\n    M([k,p],:) = M([p,k],:); % 交換整個增廣列\n    pivot = M(k,k); % 保存主元以便整列除法\n    M(k,:) = M(k,:)/pivot; % 將主元化為 1\n    for i = 1:n\n        if i ~= k\n            multiplier = M(i,k); % 必須先保存消去倍數\n            M(i,:) = M(i,:)-multiplier*M(k,:); % 同時消去上方與下方\n            M(i,k) = 0; % 清除該欄的捨入殘值\n        end\n    end\n    if any(~isfinite(M(:)))\n        error(\u0027GaussJordan:NonFinite\u0027, \u0027列運算產生非有限值。\u0027);\n    end\n    stages{end+1} = M; disp(M); % 顯示逐欄化簡過程\nend\nx = M(:,end); % 左半為單位矩陣，直接讀解\nresidual = norm(A0*x-b0,inf); % 在原方程組核對\nif any(~isfinite(x)) || ~isfinite(residual)\n    error(\u0027GaussJordan:NonFinite\u0027, \u0027解或殘差非有限值。\u0027);\nend\ndisp(x); fprintf(\u0027殘差 = %.12e\\n\u0027,residual); % 不需向後代入\n% 奇異系統也能用一般 RREF 分類，但本程式只處理非奇異方陣\n",
+    "matlab_explanation":  [
+                               "前段檢查與高斯消去法一致，只接受本例範圍內的非奇異方陣。",
+                               "pivot 必須先保存再整列相除，避免逐元素覆寫使主元意外改變。",
+                               "\\(i\\)~\\(=\\,k\\) 的迴圈消去主元上方與下方，不只處理下方列。",
+                               "每次先讀取 multiplier 再整列相減，常數欄也參與運算。",
+                               "stages 保存每欄處理後的矩陣，可比對手算；M(:,end) 直接讀出解。",
+                               "一般 RREF 可以分類奇異系統；本程式明確停止這類輸入，不宣稱本範例是完整通用 RREF 求解器。"
+                           ],
+    "advantages":  [
+                       "最終形式容易讀解，也適合教學理解主元與自由變數。",
+                       "在一般理論中，可透過 RREF 分析無解、唯一解與無限多解。"
+                   ],
+    "limitations":  [
+                        "為只求解非奇異系統，通常比高斯消去加回代做更多列運算。",
+                        "仍受浮點誤差與病態性影響，不能把近零元素直接當精確秩判斷。",
+                        "本教學程式只涵蓋非奇異方陣，未實作一般秩不足分類。"
+                    ],
+    "common_mistakes":  [
+                            "只消去主元下方就宣稱已到 RREF。",
+                            "將主元列除法漏掉常數欄，或使用零倍乘因子。",
+                            "不看矛盾列與自由變數，就把任何最右欄當成唯一解。",
+                            "對小浮點元素做不合理的精確零判斷，或把捨入誤差當新主元。"
+                        ],
+    "calculator_id":  "gauss-jordan",
+    "sources":  [
+                    {
+                        "title":  "Reduced Row Echelon Form and Gauss-Jordan Elimination",
+                        "author":  "Johns Hopkins University（課程講義）",
+                        "url":  "https://math.jhu.edu/~bernstein/math201/RREF.pdf",
+                        "sections":  "Reduced Row Echelon Form、Gauss-Jordan elimination、Number of solutions",
+                        "note":  "已初步查閱方法說明；尚未完成整份資料包的全面內容與來源查核。"
+                    },
+                    {
+                        "title":  "自編例題與 MATLAB 教學實作",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "本資料包 example、matlab_code",
+                        "note":  "例題及程式為專案自編，不是外部課本題目；容許誤差與保護門檻為本例設定。"
+                    }
+                ],
+    "status":  "draft"
+}

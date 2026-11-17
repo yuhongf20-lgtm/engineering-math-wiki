@@ -1,0 +1,154 @@
+{
+    "id":  "gauss-seidel",
+    "category":  "linear-systems",
+    "type":  "algorithm",
+    "title_zh":  "高斯－賽德法",
+    "title_en":  "Gauss-Seidel Method",
+    "summary":  "依序解出每個未知數，立即使用本輪已更新的分量，逐輪降低線性方程組殘差。",
+    "prerequisites":  [
+                          "線性方程組與矩陣乘法",
+                          "初始向量與逐次迭代",
+                          "對角優勢、殘差及無窮範數"
+                      ],
+    "concept":  "將每一條方程解成某個 \\(x_{i}\\) 的公式。由 \\(i = 1\\) 開始逐一更新，前面已算出的分量用新值，後面尚未算出的分量仍用上一輪值。這與全部使用上一輪值的 Jacobi 法不同。非零對角只保證公式可計算，不保證收斂；方程及變數排列也會影響迭代。",
+    "formulas":  [
+                     "分量更新：\\[x_i^{(k+1)}=\\frac{b_i-\\sum_{j=1}^{i-1}a_{ij}x_j^{(k+1)}-\\sum_{j=i+1}^{n}a_{ij}x_j^{(k)}}{a_{ii}}.\\]",
+                     "矩陣分割：\\(A=D+L+U\\)，\\[x^{(k+1)}=-(D+L)^{-1}Ux^{(k)}+(D+L)^{-1}b\\]實作應逐分量更新，不顯式求逆。",
+                     "迭代矩陣 \\(T=-(D+L)^{-1}U\\)；對所有初始向量收斂的判準為 \\[\\rho(T)\u003c1.\\]",
+                     "常用充分條件：每列 \\[\\lvert a_{ii}\\rvert\u003e\\sum_{j\\ne i}\\lvert a_{ij}\\rvert\\]（嚴格列對角優勢），或 \\(A\\) 為實對稱正定；不是必要條件。",
+                     "本包停止：\\[\\lVert b-Ax\\rVert_\\infty\\le\\mathrm{tolerance}\\]亦即各方程殘差絕對值的最大值不超過容許值。",
+                     "本例：\\[x_{1,\\mathrm{new}}=\\frac{6-x_{2,\\mathrm{old}}}{4},\\qquad x_{2,\\mathrm{new}}=\\frac{8-2x_{1,\\mathrm{new}}}{3}.\\]",
+                     "本例 \\(x_2\\) 誤差每輪乘 \\(\\frac16\\)，因此從此初始值可收斂；不能將此比例套用到所有矩陣。"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "\\(A , a_{ij} , b , b_{i}\\)",
+                        "meaning":  "係數矩陣、元素、常數向量及其分量。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(x , x_{i} , x_0 , x_{\\mathrm{old}}\\)",
+                        "meaning":  "目前近似向量、分量、初始向量及上一輪向量。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "i, j, k, n",
+                        "meaning":  "分量索引、加總索引、輪數及維度。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "D, L, U",
+                        "meaning":  "\\(A\\) 的對角、嚴格下三角與嚴格上三角部分。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(T , \\rho\\left(T\\right) , {}^{\\left(-1\\right)}\\)",
+                        "meaning":  "迭代矩陣、其特徵值絕對值最大值（譜半徑）及逆矩陣記號。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "\\(\\mathrm{sum} , \\left\\lVert v\\right\\rVert_{\\infty}\\)",
+                        "meaning":  "指定範圍加總；向量分量絕對值最大值。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "tolerance, residual, maxIterations",
+                        "meaning":  "殘差絕對容許值、目前殘差及最大輪數。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "pivotTol, rcond(A)",
+                        "meaning":  "本程式對角保護門檻及倒條件數估計。",
+                        "unit":  "本例無單位"
+                    },
+                    {
+                        "symbol":  "new, old",
+                        "meaning":  "new 為本輪已更新值，old 為上一輪值；\\({}^{k}\\) 表示迭代編號，不是數值次方。",
+                        "unit":  "本例無單位"
+                    }
+                ],
+    "conditions":  [
+                       "\\(A\\) 必須為相容方陣，對角元素不得為零；本程式也拒絕數值過小對角及數值近奇異矩陣。",
+                       "嚴格列對角優勢或實對稱正定可保證收斂；未符合這些充分條件時，仍可能收斂，但須另作分析。",
+                       "只因 \\(A\\) 非奇異或對角非零，不能保證 Gauss-Seidel 收斂。",
+                       "初始向量、列／變數排列、容許誤差與最大次數均須明確；所有計算值必須有限。",
+                       "本例以殘差停止，不用小步長代替成功條件；殘差小仍不直接保證病態問題的位置／解向量精度。"
+                   ],
+    "steps":  [
+                  "檢查 \\(A\\)、\\(b\\)、\\(x_0\\) 尺寸及有限值，檢查對角除數與奇異風險；分析收斂條件。",
+                  "設定 tolerance 與 maxIterations；若初始殘差已達標可直接回報。",
+                  "每輪先保存 xOld，依 \\(i = 1 \\ldots n\\) 更新。",
+                  "計算第 \\(i\\) 分量時，\\(\\mathrm{j} \u003c i\\) 用本輪新值，\\(\\mathrm{j} \u003e i\\) 用 xOld 的舊值。",
+                  "整輪完成後計算原系統殘差並記錄向量。殘差達標才成功。",
+                  "若出現非有限值或向量已完全停滯但殘差未達標，回報失敗。",
+                  "到 maxIterations 仍未成功時回報尚未收斂；可重新分析排列、初始值或選其他方法，不可假裝成功。"
+              ],
+    "example":  {
+                    "problem":  "自編例題：用 Gauss-Seidel 求 \\(4 \\, x_{1} + x_{2} = 6\\)、\\(2 \\, x_{1} + 3 \\, x_{2} = 8\\)，由零向量開始至殘差達標。",
+                    "given":  [
+                                  "\\(A = \\begin{bmatrix}4\u00261\\\\2\u00263\\end{bmatrix}\\)，\\(b = \\begin{bmatrix}6\\\\8\\end{bmatrix}\\)，\\(x_0 = \\begin{bmatrix}0\\\\0\\end{bmatrix}\\)。",
+                                  "\\(4 \u003e 1\\) 且 \\(3 \u003e 2\\)，所以是嚴格列對角優勢，具備收斂充分條件。",
+                                  "\\(\\mathrm{tolerance} = 0.01\\)，\\(\\mathrm{maxIterations} = 100\\)；採 \\(\\mathrm{residual} = \\left\\lVert b - A \\, x\\right\\rVert_{\\infty}\\)。"
+                              ],
+                    "solution_steps":  [
+                                           "由第一式得 \\(x_{1} = \\frac{\\left(6 - x_{2}\\right)}{4}\\)，由第二式得 \\(x_{2} = \\frac{\\left(8 - 2 \\, x_{1}\\right)}{3}\\)。更新 \\(x_{2}\\) 時必須立即使用剛算出的 \\(x_{1}\\)。",
+                                           "第 \\(1\\) 輪：\\(x_{1} = \\frac{\\left(6 - 0\\right)}{4} = \\frac{3}{2}\\)；\\(x_{2} = \\frac{\\left(8 - 2 \\, \\left(\\frac{3}{2}\\right)\\right)}{3} = \\frac{5}{3}\\)。\\(b - A \\, x = \\begin{bmatrix}\\frac{-5}{3}\\\\0\\end{bmatrix}\\)，殘差\\(\\frac{=\\,5}{3} \\approx 1.6666666667\\)，未達標。",
+                                           "第 \\(2\\) 輪：\\(x_{1} = \\frac{\\left(6 - \\frac{5}{3}\\right)}{4} = \\frac{13}{12}\\)；\\(x_{2} = \\frac{\\left(8 - 2 \\, \\left(\\frac{13}{12}\\right)\\right)}{3} = \\frac{35}{18}\\)。\\(b - A \\, x = \\begin{bmatrix}\\frac{-5}{18}\\\\0\\end{bmatrix}\\)，殘差\\(\\frac{=\\,5}{18} \\approx 0.2777777778\\)，未達標。",
+                                           "第 \\(3\\) 輪：\\(x_{1} = \\frac{\\left(6 - \\frac{35}{18}\\right)}{4} = \\frac{73}{72}\\)；\\(x_{2} = \\frac{\\left(8 - 2 \\, \\left(\\frac{73}{72}\\right)\\right)}{3} = \\frac{215}{108}\\)。\\(b - A \\, x = \\begin{bmatrix}\\frac{-5}{108}\\\\0\\end{bmatrix}\\)，殘差\\(\\approx\\,0.0462962963\\)，未達標。",
+                                           "第 \\(4\\) 輪：\\(x_{1} = \\frac{\\left(6 - \\frac{215}{108}\\right)}{4} = \\frac{433}{432} \\approx 1.0023148148\\)；\\(x_{2} = \\frac{\\left(8 - 2 \\, \\left(\\frac{433}{432}\\right)\\right)}{3} = \\frac{1295}{648} \\approx 1.9984567901\\)。\\(b - A \\, x = \\begin{bmatrix}\\frac{-5}{648}\\\\0\\end{bmatrix}\\)，殘差\\(\\approx\\,0.0077160494 \\le 0.01\\)，停止。",
+                                           "獨立解原式：\\(x_{2} = 6 - 4 \\, x_{1}\\)；代入 \\(2 \\, x_{1} + 3 \\, \\left(6 - 4 \\, x_{1}\\right) = 8\\)，得 \\(-10 \\, x_{1} = -10\\)，故精確解為 \\(\\begin{bmatrix}1\\\\2\\end{bmatrix}\\)。",
+                                           "四輪近似解並非精確解；第二式殘差在精確算術為零，第一式約 -0.007716，符合本題容許值。"
+                                       ],
+                    "answer":  "第 \\(4\\) 輪近似解 \\(\\begin{bmatrix}\\frac{433}{432}\\\\\\frac{1295}{648}\\end{bmatrix} \\approx \\begin{bmatrix}1.0023148148\\\\1.9984567901\\end{bmatrix}\\) 達到 \\(0.01\\) 殘差條件；原系統精確解為 \\(\\begin{bmatrix}1\\\\2\\end{bmatrix}\\)。"
+                },
+    "matlab_code":  "% 自編 Gauss-Seidel：依序更新，立即使用新分量\nA = [4 1;2 3]; % 嚴格列對角優勢矩陣\nb = [6;8]; % 真解為 [1;2]\n% 檢查有限實數矩陣及向量\nvalidateattributes(A, {\u0027double\u0027}, {\u00272d\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027nonempty\u0027});\nvalidateattributes(b, {\u0027double\u0027}, {\u0027vector\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027nonempty\u0027});\nn = size(A,1); % 方程式數量\nif size(A,2) ~= n || numel(b) ~= n\n    error(\u0027Linear:Dimensions\u0027, \u0027本程式只接受 n×n 方陣及 n 個常數。\u0027);\nend\nb = b(:); % 統一轉為直向向量\nA0 = A; b0 = b; % 保留原題供殘差檢查\nmatrixScale = norm(A,inf); % 矩陣尺度\nif ~isfinite(matrixScale) || matrixScale == 0\n    error(\u0027Linear:Scale\u0027, \u0027矩陣尺度無效或為零。\u0027);\nend\nif rcond(A) \u003c= 1e-12\n    error(\u0027Linear:Singular\u0027, \u0027矩陣奇異或數值近奇異；本唯一解範例停止，不宣稱無解。\u0027);\nend\npivotTol = 1e-12*matrixScale; % 相對矩陣尺度的保護門檻，不是精確秩判定\n\nx0 = [0;0]; % 初始向量\ntolerance = 1e-2; % 絕對殘差無窮範數容許值\nmaxIterations = 100; % 防止無限迴圈\nvalidateattributes(x0, {\u0027double\u0027}, {\u0027vector\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027numel\u0027,n});\nvalidateattributes(tolerance, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\nvalidateattributes(maxIterations, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027integer\u0027,\u0027\u003e=\u0027,1,\u0027\u003c=\u0027,10000});\nif any(abs(diag(A)) \u003c= pivotTol)\n    error(\u0027GaussSeidel:Diagonal\u0027, \u0027對角元素為零或相對過小，不能直接除法。\u0027);\nend\nif any(abs(diag(A)) \u003c= sum(abs(A),2)-abs(diag(A)))\n    warning(\u0027GaussSeidel:Convergence\u0027, \u0027不是嚴格列對角優勢；須另外分析收斂，不保證成功。\u0027);\nend\nx = x0(:); % 統一向量方向\nhistory = zeros(0,n+2); % k、各分量、殘差\nresidual = norm(b-A*x,inf); % 初始殘差\nif ~isfinite(residual), error(\u0027GaussSeidel:NonFinite\u0027,\u0027初始殘差溢位。\u0027); end\nconverged = residual \u003c= tolerance; % 初始值達標可為零次迭代\nfor k = 1:maxIterations\n    if converged, break; end % 先檢查初始成功\n    xOld = x; % 保存尚未更新分量所需的上一輪值\n    for i = 1:n\n        lower = A(i,1:i-1)*x(1:i-1); % j\u003ci 使用本輪新值\n        upper = A(i,i+1:n)*xOld(i+1:n); % j\u003ei 使用上一輪舊值\n        x(i) = (b(i)-lower-upper)/A(i,i); % 更新第 i 分量\n    end\n    residual = norm(b-A*x,inf); % 每完成整輪才計算殘差\n    if any(~isfinite(x)) || ~isfinite(residual)\n        error(\u0027GaussSeidel:NonFinite\u0027, \u0027迭代產生非有限值。\u0027);\n    end\n    history(end+1,:) = [k,x.\u0027,residual]; % 保存可核對的逐輪結果\n    fprintf(\u0027%d: \u0027,k); fprintf(\u0027%.12g \u0027,x); fprintf(\u0027殘差 %.12e\\n\u0027,residual);\n    converged = residual \u003c= tolerance; % 主要停止條件，不是步長\n    if ~converged \u0026\u0026 isequal(x,xOld)\n        error(\u0027GaussSeidel:Precision\u0027, \u0027浮點停滯且殘差未達標。\u0027);\n    end\nend\nif ~converged\n    error(\u0027GaussSeidel:MaxIterations\u0027, \u0027已達最大迭代次數，尚未收斂。\u0027);\nend\ndisp(x); % 顯示達到殘差條件的近似解，不宣稱為精確解\n",
+    "matlab_explanation":  [
+                               "\\(A\\)、\\(b\\)、\\(x_0\\) 與殘差容許值對應手算，history 每列為 \\(k\\)、\\(x_{1}\\)、\\(x_{2}\\)、residual。",
+                               "validateattributes、rcond 與對角檢查保護除法；不是完整的數學收斂判定器。",
+                               "對角優勢檢查不成立時僅警告，因為它是充分條件而不是必要條件；例如某些對稱正定矩陣也可收斂。",
+                               "lower 使用正在更新的 \\(x\\)，upper 使用 xOld；全部改成 xOld 就會變成 Jacobi。",
+                               "residual 在整輪結束後計算，與單純兩次向量差不同。",
+                               "maxIterations、有限值與停滯檢查確保失敗能明確結束。"
+                           ],
+    "advantages":  [
+                       "不需顯式求逆，逐分量更新的實作直觀。",
+                       "可利用稀疏結構節省運算與儲存，並逐輪檢視殘差。"
+                   ],
+    "limitations":  [
+                        "不是對所有非奇異矩陣都收斂，且排列會影響收斂速度。",
+                        "分量相依使直接平行更新較困難。",
+                        "可能收斂很慢；誤差與殘差的關係受條件數影響。"
+                    ],
+    "common_mistakes":  [
+                            "本輪已算出的分量仍使用舊值，誤實作為 Jacobi。",
+                            "只檢查對角非零就宣稱必定收斂。",
+                            "把嚴格對角優勢當必要條件，錯誤拒絕所有不符合者。",
+                            "只看向量差很小，忽略原方程殘差與浮點停滯。",
+                            "沒有最大次數，或達上限後仍回報成功。"
+                        ],
+    "calculator_id":  "gauss-seidel",
+    "sources":  [
+                    {
+                        "title":  "Templates for the Solution of Linear Systems — The Gauss-Seidel Method",
+                        "author":  "Netlib",
+                        "url":  "https://netlib.org/linalg/html_templates/node14.html",
+                        "sections":  "順序更新與排列影響",
+                        "note":  "已初步查閱方法說明；尚未完成整份資料包的全面內容與來源查核。"
+                    },
+                    {
+                        "title":  "Templates for the Solution of Linear Systems",
+                        "author":  "Netlib",
+                        "url":  "https://netlib.org/templates/templates.pdf",
+                        "sections":  "Gauss-Seidel 適用矩陣與收斂討論",
+                        "note":  "已初步查閱方法說明；尚未完成整份資料包的全面內容與來源查核。"
+                    },
+                    {
+                        "title":  "自編例題與 MATLAB 教學實作",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "本資料包 example、matlab_code",
+                        "note":  "例題及程式為專案自編，不是外部課本題目；容許誤差與保護門檻為本例設定。"
+                    }
+                ],
+    "status":  "draft"
+}

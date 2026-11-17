@@ -1,0 +1,163 @@
+{
+    "id":  "bisection",
+    "category":  "root-finding",
+    "type":  "algorithm",
+    "title_zh":  "二分法",
+    "title_en":  "Bisection Method",
+    "summary":  "藉由反覆平分連續函數的異號區間，保留含根的一半，逐步縮小根所在範圍。",
+    "prerequisites":  [
+                          "函數值與正負號",
+                          "區間、中點與絕對誤差",
+                          "連續函數與介值定理"
+                      ],
+    "concept":  "對連續實函數 \\(f\\)，若左右端點函數值異號，介值定理保證區間內至少有一個根。每次取中點並保留異號子區間，區間長度即減半。這只保證存在根，不保證唯一；若函數在區間嚴格單調，則至多一根。二分法不需要導數，且收斂速度受每次折半限制。",
+    "formulas":  [
+                     "中點：\\[x_r=x_l+\\frac{x_u-x_l}{2}\\]數學上等同 \\(\\frac{x_l+x_u}{2}\\)。",
+                     "初始包根條件：\\[f(x_l)f(x_u)\u003c0\\]若任一端點為零，先直接回報端點根。",
+                     "區間更新：\\(f(x_l)f(x_r)\u003c0\\) 時令 \\(x_u=x_r\\)，否則在 \\(f(x_r)\\ne0\\) 時令 \\(x_l=x_r\\)。",
+                     "第 \\(n\\) 次更新後區間長度：\\[W_n=\\frac{x_{u,0}-x_{l,0}}{2^n},\\qquad W_0=x_{u,0}-x_{l,0}.\\]",
+                     "第 \\(n\\) 次中點誤差界：\\[\\lvert x_{r,n}-r\\rvert\\le\\frac{x_{u,0}-x_{l,0}}{2^n}=\\frac{W_{n-1}}{2}\\]其中 \\(n\\) 從 1 起算，此界使用更新前區間。",
+                     "位置停止條件：\\[\\frac{x_u-x_l}{2}\\le\\mathrm{tol}_x\\]須在更新區間前檢查並回報當次中點。",
+                     "若要位置誤差界不超過 \\(\\mathrm{tol}_x\\)，可選 \\[n\\ge\\max\\left(1,\\left\\lceil\\log_2\\frac{W_0}{\\mathrm{tol}_x}\\right\\rceil\\right)\\]此為精確算術下的迭代預估。",
+                     "函數殘差：\\(\\lvert f(x_r)\\rvert\\)；它與位置誤差 \\(\\lvert x_r-r\\rvert\\) 不同，沒有額外條件時不能互相當作上界。"
+                 ],
+    "symbols":  [
+                    {
+                        "symbol":  "\\(f\\left(x\\right) , x\\)",
+                        "meaning":  "待求零點的實函數及自變數；例題 \\(f\\left(x\\right) = {x}^{2} - 2\\)。",
+                        "unit":  "例題無單位"
+                    },
+                    {
+                        "symbol":  "xl, xu",
+                        "meaning":  "本次迭代更新前的左、右端點，\\(x_l \u003c x_u\\)。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "\\(x_r , x_{r,n}\\)",
+                        "meaning":  "目前中點及第 \\(n\\) 次迭代的中點。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "\\(r\\)",
+                        "meaning":  "保留區間中的真根；例題為 \\(\\sqrt{2}\\)。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "\\(x_{l,0} , x_{u,0} , W_{0} , W_{n}\\)",
+                        "meaning":  "初始端點、初始寬度，以及第 \\(n\\) 次更新後寬度。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "\\(n , \\mathrm{max}_{\\mathrm{iter}}\\)",
+                        "meaning":  "迭代編號（從 \\(1\\) 起）及最大迭代次數。",
+                        "unit":  "無"
+                    },
+                    {
+                        "symbol":  "\\(\\mathrm{tol}_{x}\\)",
+                        "meaning":  "中點位置絕對誤差的容許上界，必須為有限正數。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "fl, fu, fr",
+                        "meaning":  "程式內 \\(f\\left(x_l\\right)\\)、\\(f\\left(x_u\\right)\\)、\\(f\\left(x_r\\right)\\) 的快取值。",
+                        "unit":  "與 \\(f\\) 相同"
+                    },
+                    {
+                        "symbol":  "bound",
+                        "meaning":  "程式中更新前區間的半寬，即當次中點的理論位置誤差界。",
+                        "unit":  "與 \\(x\\) 相同"
+                    },
+                    {
+                        "symbol":  "ceil, log2, | |",
+                        "meaning":  "向上取整、以 \\(2\\) 為底的對數、絕對值。",
+                        "unit":  "無"
+                    }
+                ],
+    "conditions":  [
+                       "\\(f\\) 必須在整個初始閉區間連續；不能只靠端點異號就認定有根，例如 \\(\\frac{1}{x}\\) 在 \\(\\left[-1,1\\right]\\) 不連續。",
+                       "初始端點須為有限實數且 \\(x_l \u003c x_u\\)；端點函數值須為有限實數。",
+                       "先檢查端點根；端點非零時須異號。同號並不代表沒有根，只表示此包根條件不成立，例如 \\({x}^{2}\\) 在 \\(\\left[-1,1\\right]\\)。",
+                       "容許誤差須為有限正數，最大迭代次數須為有限正整數。",
+                       "連續性及包根成立時，精確算術下可持續縮小區間；實際運算受浮點精度及迭代上限限制。"
+                   ],
+    "steps":  [
+                  "設定 \\(f\\)、xl、xu、\\(\\mathrm{tol}_{x}\\) 與 \\(\\mathrm{max}_{\\mathrm{iter}}\\)，先分析區間連續性。",
+                  "驗證參數並計算端點函數值；端點為根則直接回報，否則確認端點異號。",
+                  "取 \\(x_r = x_l + \\frac{\\left(x_u - x_l\\right)}{2}\\)，計算 fr，記錄更新前區間、半寬及函數值。",
+                  "若 fr 計算為零或更新前半寬 \\(\\le\\,\\mathrm{tol}_{x}\\)，回報當次中點；函數值為零仍受浮點誤差影響。",
+                  "尚未符合停止條件時，若中點已等於端點，回報浮點停滯。",
+                  "若 \\(f\\left(x_l\\right)\\) 與 fr 異號，令 \\(x_u = x_r\\)；否則令 \\(x_l = x_r\\)，並更新對應端點函數值。",
+                  "重複直到成功或達 \\(\\mathrm{max}_{\\mathrm{iter}}\\)；達上限只表示尚未達停止條件，不代表沒有根。遇到非有限值立即報錯。"
+              ],
+    "example":  {
+                    "problem":  "自編教學例題：用二分法求 \\(f\\left(x\\right) = {x}^{2} - 2\\) 在 \\(\\left[1,2\\right]\\) 的正根，手算前五次迭代。",
+                    "given":  [
+                                  "\\(x_{l,0} = 1\\)，\\(x_{u,0} = 2\\)，\\(f\\left(1\\right) = -1\\)，\\(f\\left(2\\right) = 2\\)。",
+                                  "多項式在 \\(\\left[1,2\\right]\\) 連續且嚴格遞增，因此此區間恰有一根。",
+                                  "手算以展示五次迭代為停止規則，不宣稱已達指定精度。另以 \\(\\mathrm{tol}_{x} = 1\\times10^{-6}\\)、\\(\\mathrm{max}_{\\mathrm{iter}} = 100\\) 作為 MATLAB 執行設定。"
+                              ],
+                    "solution_steps":  [
+                                           "第 \\(1\\) 次：\\(x_l = 1\\)，\\(x_u = 2\\)；\\(x_r = \\frac{\\left(1 + 2\\right)}{2} = 1.5\\)；\\(f\\left(x_r\\right) = 2.25 - 2 = 0.25\\)。\\(f\\left(x_l\\right) = -1\\) 與 \\(f\\left(x_r\\right)\\) 異號，令 \\(x_u = 1.5\\)，新區間 \\(\\left[1,1.5\\right]\\)。",
+                                           "第 \\(2\\) 次：\\(x_l = 1\\)，\\(x_u = 1.5\\)；\\(x_r = \\frac{2.5}{2} = 1.25\\)；\\(f\\left(x_r\\right) = 1.5625 - 2 = -0.4375\\)。\\(f\\left(x_l\\right) = -1\\) 與 \\(f\\left(x_r\\right)\\) 同號，令 \\(x_l = 1.25\\)，新區間 \\(\\left[1.25,1.5\\right]\\)。",
+                                           "第 \\(3\\) 次：\\(x_l = 1.25\\)，\\(x_u = 1.5\\)；\\(x_r = \\frac{2.75}{2} = 1.375\\)；\\(f\\left(x_r\\right) = 1.890625 - 2 = -0.109375\\)。\\(f\\left(x_l\\right) = -0.4375\\) 與 \\(f\\left(x_r\\right)\\) 同號，令 \\(x_l = 1.375\\)，新區間 \\(\\left[1.375,1.5\\right]\\)。",
+                                           "第 \\(4\\) 次：\\(x_l = 1.375\\)，\\(x_u = 1.5\\)；\\(x_r = \\frac{2.875}{2} = 1.4375\\)；\\(f\\left(x_r\\right) = 2.06640625 - 2 = 0.06640625\\)。\\(f\\left(x_l\\right) = -0.109375\\) 與 \\(f\\left(x_r\\right)\\) 異號，令 \\(x_u = 1.4375\\)，新區間 \\(\\left[1.375,1.4375\\right]\\)。",
+                                           "第 \\(5\\) 次：\\(x_l = 1.375\\)，\\(x_u = 1.4375\\)；\\(x_r = \\frac{2.8125}{2} = 1.40625\\)；\\(f\\left(x_r\\right) = 1.9775390625 - 2 = -0.0224609375\\)。\\(f\\left(x_l\\right) = -0.109375\\) 與 \\(f\\left(x_r\\right)\\) 同號，令 \\(x_l = 1.40625\\)，新區間 \\(\\left[1.40625,1.4375\\right]\\)。",
+                                           "第五次中點 \\(x_{r,5} = 1.40625\\) 的誤差界為更新前半寬 \\(\\frac{\\left(1.4375 - 1.375\\right)}{2} = 0.03125\\)；更新後區間寬也是 \\(0.03125\\)。不能直接把更新後半寬 \\(0.015625\\) 當成 \\(x_{r,5}\\) 的誤差界。",
+                                           "若另取更新後區間的中點，得到 \\(1.421875\\)，其誤差界為 \\(0.015625\\)；這是下一個中點，並非第五次的 xr。",
+                                           "以 \\(\\sqrt{2}\\) 約 \\(1.414213562373095\\) 作獨立核對，第五次近似值的實際絕對誤差約 \\(0.007963562373095\\)；這小於 \\(0.03125\\)，但仍大於 \\(1\\times10^{-6}\\)。"
+                                       ],
+                    "answer":  "五次迭代的最後中點為 \\(1.40625\\)，根仍位於 \\(\\left[1.40625,1.4375\\right]\\)。五次迭代不保證任意指定精度。本例若要求中點誤差界 \\(\\le\\,1\\times10^{-6}\\)，需至少 \\(20\\) 次；MATLAB 程式會繼續至停止條件成立，並非僅做五次。"
+                },
+    "matlab_code":  "% 二分法自編教材：f(x) = x^2 - 2；此為 MATLAB 程式，非網頁計算器\nf = @(x) x.^2 - 2;\nxl = 1;\nxu = 2;\ntol_x = 1e-6; % 中點的絕對位置誤差容許值，不是函數殘差\nmax_iter = 100; % 最多執行次數，避免無限迴圈\nvalidateattributes(xl, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027});\nvalidateattributes(xu, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027\u003e\u0027,xl});\nvalidateattributes(tol_x, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027positive\u0027});\nvalidateattributes(max_iter, {\u0027double\u0027}, {\u0027scalar\u0027,\u0027real\u0027,\u0027finite\u0027,\u0027integer\u0027,\u0027positive\u0027});\nfl = f(xl);\nfu = f(xu);\nif ~isreal(fl) || ~isreal(fu) || ~isfinite(fl) || ~isfinite(fu)\n    error(\u0027Bisection:NonFinite\u0027, \u0027端點函數值必須是有限實數。\u0027);\nend\n% 連續性必須由使用者分析確認，有限次取樣不能證明連續\nconverged = false;\nhistory = zeros(0,6); % 欄位：k、xl、xu、xr、f(xr)、更新前半寬\nif fl == 0\n    xr = xl; fr = fl; bound = 0; converged = true;\nelseif fu == 0\n    xr = xu; fr = fu; bound = 0; converged = true;\nelseif sign(fl) == sign(fu)\n    error(\u0027Bisection:NoBracket\u0027, \u0027端點非零且同號，請重新選擇區間。\u0027);\nend\nfprintf(\u0027 k       xl             xu             xr             f(xr)          bound\\n\u0027);\nfor k = 1:max_iter\n    if converged\n        break;\n    end\n    bound = (xu - xl)/2; % 使用本次更新前的區間，估計本次中點誤差\n    xr = xl + bound;\n    fr = f(xr);\n    if ~isreal(fr) || ~isfinite(fr) || ~isfinite(bound)\n        error(\u0027Bisection:NonFinite\u0027, \u0027中點函數值或區間寬度非有限實數。\u0027);\n    end\n    history(end+1,:) = [k,xl,xu,xr,fr,bound];\n    fprintf(\u0027%2d  %.12f  %.12f  %.12f  % .12e  %.12e\\n\u0027, k,xl,xu,xr,fr,bound);\n    % 浮點數 fr == 0 表示計算值為零；仍須留意捨入誤差\n    if fr == 0 || bound \u003c= tol_x\n        converged = true;\n        break;\n    end\n    if xr == xl || xr == xu\n        error(\u0027Bisection:Stagnation\u0027, \u0027浮點精度使中點等於端點，無法繼續縮小區間。\u0027);\n    end\n    % 比較符號，避免直接相乘可能造成溢位\n    if sign(fl) ~= sign(fr)\n        xu = xr;\n        fu = fr;\n    else\n        xl = xr;\n        fl = fr;\n    end\nend\nif ~converged\n    error(\u0027Bisection:MaxIterations\u0027, \u0027已達最大迭代次數，尚未滿足停止條件。\u0027);\nend\nfprintf(\u0027近似根 = %.12f；中點誤差界 = %.12e\\n\u0027, xr, bound);\n% 誤差界依賴連續、包根條件；理論界未計入浮點捨入誤差\n",
+    "matlab_explanation":  [
+                               "程式為本資料包自編，不是複製來源網站實作；以 MATLAB 執行，不由瀏覽器執行。",
+                               "\\(\\mathrm{tol}_{x}\\) 控制位置誤差界，沒有以函數殘差取代位置精度。第 \\(1\\) 次半寬為 \\(0.5\\)，依次折半。",
+                               "history 儲存每次更新前狀態，可與手算前五次逐欄核對；fprintf 顯示結果。",
+                               "使用 sign 比較異號而非直接相乘；檢查端點根、非有限值、浮點停滯與最大次數。",
+                               "本程式針對預設的多項式例題；若改函數須自行重新分析連續性與區間。",
+                               "MATLAB 實際執行測試狀態須以交付驗證回報為準；\\(\\mathrm{status} = \\mathrm{draft}\\) 不代表程式或整份內容已全面驗證。"
+                           ],
+    "advantages":  [
+                       "不需要導數，計算與教學步驟清楚。",
+                       "連續與異號包根條件下，可追蹤含根區間並給出可預測的誤差界。"
+                   ],
+    "limitations":  [
+                        "須先找到有效包根區間；不能由端點同號推論無根，且可能漏掉偶數重根。",
+                        "每次只將區間折半，速度可能比牛頓法慢。",
+                        "多根區間不能保證選到指定根；浮點停滯可能限制可達精度。"
+                    ],
+    "common_mistakes":  [
+                            "忽略連續性，將跨越奇點的異號區間當成有效包根。",
+                            "更新時未保留異號區間，或忘記同步更新端點函數值。",
+                            "把 \\(\\left|f\\left(x_r\\right)\\right|\\) 很小誤認成位置誤差必然很小。",
+                            "混淆更新前半寬、更新後寬度與更新後半寬的誤差對象。",
+                            "只做固定五次就宣稱已達任意精度；停止須明確區分成功、上限、非有限值與浮點停滯。",
+                            "端點恰好為根卻先以嚴格異號檢查拒絕；應先處理端點零值。",
+                            "達到 \\(\\mathrm{max}_{\\mathrm{iter}}\\) 後回報成功，或因迭代不足便斷言不存在根。"
+                        ],
+    "calculator_id":  "bisection",
+    "sources":  [
+                    {
+                        "title":  "Topic 10.1: Bisection Method",
+                        "author":  "University of Waterloo, Douglas Wilhelm Harder",
+                        "url":  "https://ece.uwaterloo.ca/~dwharder/NumericalAnalysis/10RootFinding/bisection/complete.html",
+                        "sections":  "Theory、HOWTO、Halting Conditions",
+                        "note":  "已初步查閱連續性、包根與折半原理，尚未完成整包來源逐項查核。該頁停止準則不同；本包明確採更新前半寬的位置誤差準則。"
+                    },
+                    {
+                        "title":  "fzero — Root of nonlinear function",
+                        "author":  "MathWorks",
+                        "url":  "https://www.mathworks.com/help/matlab/ref/fzero.html",
+                        "sections":  "Description、Root Starting from an Interval、Algorithms",
+                        "note":  "作為 MATLAB 求根背景參考；fzero 結合二分與插值，並非本包的純二分實作。"
+                    },
+                    {
+                        "title":  "f(x)=x^2-2 二分法自編例題與 MATLAB 教學實作",
+                        "author":  "Engineering Math Wiki 專案自編",
+                        "url":  null,
+                        "sections":  "本資料包 example、matlab_code",
+                        "note":  "非外部教材引用，未使用課本頁碼；整體維持 draft。"
+                    }
+                ],
+    "status":  "draft"
+}
